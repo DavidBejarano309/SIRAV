@@ -1,0 +1,2 @@
+-- SIRAV | PostgreSQL | 06_reportes.sql
+-- Pendiente de implementación (ver db/README.md)

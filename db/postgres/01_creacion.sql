@@ -1,0 +1,2 @@
+-- SIRAV | PostgreSQL | 01_creacion.sql
+-- Pendiente de implementación (ver db/README.md)

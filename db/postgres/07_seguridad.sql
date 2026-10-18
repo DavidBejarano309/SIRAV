@@ -1,0 +1,2 @@
+-- SIRAV | PostgreSQL | 07_seguridad.sql
+-- Pendiente de implementación (ver db/README.md)

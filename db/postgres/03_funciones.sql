@@ -1,0 +1,2 @@
+-- SIRAV | PostgreSQL | 03_funciones.sql
+-- Pendiente de implementación (ver db/README.md)

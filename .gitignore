@@ -1,0 +1,31 @@
+# Java / Maven / Gradle
+target/
+build/
+*.class
+*.jar
+!.mvn/wrapper/*.jar
+.gradle/
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+# Entorno y secretos
+.env
+*.env
+application-local.properties
+*.pem
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
+# Máquina virtual
+*.vdi
+*.vmdk
+*.ova
+*.iso
+# Base de datos local
+*.dump
+*.bson

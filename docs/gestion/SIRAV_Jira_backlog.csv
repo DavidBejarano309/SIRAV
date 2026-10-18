@@ -1,0 +1,98 @@
+﻿Issue Id,Issue Type,Summary,Description,Parent,Epic Name,Sprint,Story point estimate,Priority,Labels,Labels,Labels,Labels
+1,Epic,Gestión y documentación,"Planificación, requerimientos, riesgos, informe y video.",,Gestión y documentación,,,Medium,,,,
+2,Epic,Modelado y diseño de datos,"Modelos E-R, relacional, diccionario y 3FN.",,Modelado y diseño de datos,,,Medium,,,,
+3,Epic,Infraestructura Linux y VM,"Selección de SO/RDBMS, máquina virtual y despliegue.",,Infraestructura Linux y VM,,,Medium,,,,
+4,Epic,PostgreSQL: lógica de negocio,"Esquema, procedimientos, funciones, triggers, reportes y seguridad.",,PostgreSQL: lógica de negocio,,,Medium,,,,
+5,Epic,MongoDB,"Modelo documental, CRUD, consultas complejas y agregaciones.",,MongoDB,,,Medium,,,,
+6,Epic,Aplicación web e integración,"Spring Boot, conexión a ambas bases y flujos de negocio.",,Aplicación web e integración,,,Medium,,,,
+7,Epic,Calidad y pruebas,Pruebas de concurrencia e integración end-to-end.,,Calidad y pruebas,,,Medium,,,,
+101,Story,"Configurar Jira, tablero Scrum, repositorio GitHub y ramas","Criterios de aceptación: Proyecto SIRAV en Jira con tablero y 4 sprints; repo con main/develop/feature; README inicial; ambos con acceso.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",1,,SIRAV Sprint 1,2,High,integrante-b,fase-1,epica-1,sprint-1
+102,Story,"Redactar supuestos, requerimientos priorizados y matriz de riesgos","Criterios de aceptación: Documento de supuestos; RF/RNF con prioridad y trazabilidad; al menos 5 riesgos con probabilidad, impacto y mitigación.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",1,,SIRAV Sprint 1,3,High,integrante-a,fase-1,epica-1,sprint-1
+103,Story,"Elaborar Gantt, matriz RACI y justificación de metodología","Criterios de aceptación: Gantt con 4 sprints e hitos H1-H4; RACI para 2 integrantes; metodología híbrida justificada.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",1,,SIRAV Sprint 1,2,Medium,integrante-b,fase-1,epica-1,sprint-1
+104,Story,Diseñar modelo E-R (Chen) y E-R extendido,"Criterios de aceptación: Entidades, atributos, cardinalidades y reglas; incluye relaciones 1:1, 1:N y N:M; revisado por ambos.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",2,,SIRAV Sprint 1,5,Highest,integrante-a,fase-1,epica-2,sprint-1
+105,Story,Construir modelo E-R y relacional en Crow's Foot (Data Modeler o Workbench),"Criterios de aceptación: Ambos modelos exportados en imagen/PDF y consistentes con el E-R; mínimo 8 entidades.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",2,,SIRAV Sprint 1,3,Highest,integrante-a,fase-1,epica-2,sprint-1
+106,Story,Elaborar diccionario de datos y verificar 3FN,"Criterios de aceptación: Todas las tablas y columnas con tipo, restricciones y descripción; justificación de normalización hasta 3FN.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",2,,SIRAV Sprint 1,3,High,integrante-b,fase-1,epica-2,sprint-1
+107,Story,Análisis de selección de SO y de RDBMS,"Criterios de aceptación: Matriz de criterios ponderados (Ubuntu, Debian, Rocky; PostgreSQL, MySQL, MariaDB) con decisión justificada.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",3,,SIRAV Sprint 1,3,High,integrante-b,fase-1,epica-3,sprint-1
+108,Story,Instalar Ubuntu Server en VM con red y puertos,"Criterios de aceptación: VM accesible desde el navegador del anfitrión; recursos definidos; pasos documentados y probados.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",3,,SIRAV Sprint 1,3,High,integrante-b,fase-2,epica-3,sprint-1
+109,Story,"Crear scripts DDL con PK, FK, CHECK, UNIQUE e índices","Criterios de aceptación: Script 01_creacion.sql ejecutable de cero; las 13 entidades; índices ix_ en vehículo y fechas.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,3,Highest,integrante-a,fase-2,epica-4,sprint-2
+110,Story,Cargar datos de prueba (script de inserción),"Criterios de aceptación: Script 02_insercion.sql con 20-30 vehículos, categorías, tarifas, clientes y usuarios de los 3 perfiles.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,2,Medium,integrante-b,fase-2,epica-4,sprint-2
+111,Story,Implementar restricción de exclusión RN-01 y probar concurrencia,"Criterios de aceptación: EXCLUDE con daterange y btree_gist; dos sesiones simultáneas no logran reservar el mismo vehículo en fechas solapadas.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,3,Highest,integrante-a,fase-2,epica-4,sprint-2
+112,Story,"Crear funciones fn_vehiculo_disponible, fn_calcular_costo y fn_calcular_cargo_retraso","Criterios de aceptación: Las 3 funciones con casos de prueba documentados (RN-04).
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,3,High,integrante-a,fase-2,epica-4,sprint-2
+113,Story,"Crear procedimientos sp_crear, sp_confirmar y sp_cancelar_reserva con excepciones y transacciones","Criterios de aceptación: Manejo de e_reserva_solapada y e_transicion_invalida; COMMIT/ROLLBACK probados; mensajes claros para la aplicación.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,5,Highest,integrante-a,fase-2,epica-4,sprint-2
+114,Story,"Crear triggers de transición, mantenimiento, auditoría y estado del vehículo","Criterios de aceptación: Los 4 triggers (RN-02, RN-03, auditoría y estado); pruebas que muestran cada rechazo y cada registro de auditoría.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,3,High,integrante-b,fase-2,epica-4,sprint-2
+115,Story,Documento SQL de reportes R1 a R6,"Criterios de aceptación: Seis consultas ejecutables (JOIN, GROUP BY, RANK() OVER, CASE, NOT EXISTS) con resultado de ejemplo y explicación.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 2,5,High,integrante-b,fase-1,epica-4,sprint-2
+116,Story,Diseñar modelo documental y justificación de uso de MongoDB,"Criterios de aceptación: Estructura de inspecciones_vehiculo y bitacora_operaciones con ejemplos JSON y justificación de por qué NoSQL.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",5,,SIRAV Sprint 2,2,High,integrante-b,fase-1,epica-5,sprint-2
+117,Story,Crear procedimientos sp_iniciar_alquiler y sp_cerrar_alquiler,"Criterios de aceptación: Crean el alquiler 1:1, calculan cargos y pago de prueba, actualizan estados; probados con retraso y sin retraso.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 3,3,Highest,integrante-a,fase-2,epica-4,sprint-3
+118,Story,Instalar MongoDB y crear colecciones con CRUD,"Criterios de aceptación: Colecciones creadas; insertar, consultar, actualizar y anular inspecciones probados desde mongosh.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",5,,SIRAV Sprint 3,3,High,integrante-b,fase-2,epica-5,sprint-3
+119,Story,Implementar consulta compleja y 3 agregaciones en MongoDB,"Criterios de aceptación: $elemMatch por severidad y fechas; promedio de km y combustible por categoría; zonas de daño por mes; incidencias por vehículo.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",5,,SIRAV Sprint 3,3,High,integrante-b,fase-2,epica-5,sprint-3
+120,Story,Crear proyecto Spring Boot con conexión a PostgreSQL y MongoDB y login con roles,"Criterios de aceptación: Aplicación arranca en la VM; ambas conexiones verificadas; login con Spring Security y BCrypt para los 3 perfiles.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",6,,SIRAV Sprint 3,5,Highest,integrante-b,fase-2,epica-6,sprint-3
+121,Story,Construir catálogo y consulta de disponibilidad por fechas,"Criterios de aceptación: Pantalla de catálogo por categoría y fechas usando fn_vehiculo_disponible.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",6,,SIRAV Sprint 3,3,High,integrante-b,fase-2,epica-6,sprint-3
+122,Story,Construir flujo de reservas con invocación de procedimientos,"Criterios de aceptación: Crear, confirmar y cancelar reservas llamando a los sp_; los errores de la base se muestran como avisos.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",6,,SIRAV Sprint 3,5,Highest,integrante-a,fase-2,epica-6,sprint-3
+123,Story,Construir flujo de entrega y devolución con inspección en MongoDB,"Criterios de aceptación: Entrega y devolución con sp_; inspección guardada en MongoDB con id_alquiler; RN-05 respetada.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",6,,SIRAV Sprint 3,5,Highest,integrante-a,fase-2,epica-6,sprint-3
+124,Story,Construir módulo de mantenimiento y reportes en la aplicación,"Criterios de aceptación: Registro de mantenimientos; pantallas con los reportes SQL y una agregación de MongoDB.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",6,,SIRAV Sprint 4,5,Medium,integrante-a,fase-2,epica-6,sprint-4
+125,Story,Configurar roles y privilegios en PostgreSQL,"Criterios de aceptación: Rol de aplicación (solo ejecuta sp_ y lee vistas), rol de reportes y rol administrador; la aplicación usa el rol mínimo.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",4,,SIRAV Sprint 4,2,High,integrante-b,fase-2,epica-4,sprint-4
+126,Story,Pruebas de concurrencia y de casos de reservas simultáneas,"Criterios de aceptación: Escenario de dos sesiones documentado con evidencia (capturas o logs) y resultado esperado.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",7,,SIRAV Sprint 4,3,Highest,integrante-a,fase-2,epica-7,sprint-4
+127,Story,Pruebas end-to-end del flujo completo,"Criterios de aceptación: Reserva, confirmación, entrega, devolución, cierre e historial sin errores en la VM; lista de verificación firmada por ambos.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",7,,SIRAV Sprint 4,3,High,integrante-b,fase-2,epica-7,sprint-4
+128,Story,"Documentar instalación, puertos, arranque y copias de respaldo","Criterios de aceptación: Guía paso a paso; servicios systemd; pg_dump y mongodump probados; instantánea de la VM tomada.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",3,,SIRAV Sprint 4,3,High,integrante-b,fase-2,epica-3,sprint-4
+129,Story,Redactar informe ejecutivo (máx. 5 páginas) y referencias,"Criterios de aceptación: Problema, solución, arquitectura, decisiones técnicas, resultados, lecciones aprendidas y conclusiones; referencias de libros y revistas.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",1,,SIRAV Sprint 4,3,High,integrante-a,fase-2,epica-1,sprint-4
+130,Story,Grabar y editar video demostrativo (máx. 15 min),"Criterios de aceptación: Guion en el orden de la propuesta; participan ambos integrantes; duración menor o igual a 15 minutos.
+
+Definición de terminado: código/script en GitHub (rama develop), probado en la VM, revisado por el otro integrante y evidencia guardada.",1,,SIRAV Sprint 4,3,High,integrante-b,fase-2,epica-1,sprint-4
