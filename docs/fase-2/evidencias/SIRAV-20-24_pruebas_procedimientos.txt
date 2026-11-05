@@ -1,0 +1,59 @@
+SIRAV-20 / SIRAV-24 | Evidencia de 04_procedimientos.sql
+Fecha: 2026-11-05T15:34:11-05:00
+
+== 1. Casos de prueba (transacción revertida al final) ==
+NOTICE:  OK    | P1 sp_crear_reserva deja la reserva SOLICITADA  (esperado: SOLICITADA, obtenido: SOLICITADA)
+NOTICE:  OK    | P1 usa la tarifa vigente de la categoría  (esperado: 6, obtenido: 6)
+NOTICE:  OK    | P2 Reserva solapada -> e_reserva_solapada  (esperado: SR001, obtenido: SR001)
+NOTICE:  OK    | P3 Fechas con mantenimiento -> e_mantenimiento_solapado  (esperado: SR002, obtenido: SR002)
+NOTICE:  OK    | P4 Fecha pasada -> e_parametro_invalido  (esperado: SR007, obtenido: SR007)
+NOTICE:  OK    | P5 Fechas invertidas -> e_parametro_invalido  (esperado: SR007, obtenido: SR007)
+NOTICE:  OK    | P6 Vehículo INACTIVO -> e_vehiculo_no_disponible  (esperado: SR005, obtenido: SR005)
+NOTICE:  OK    | P7 Cliente inexistente -> e_registro_no_encontrado  (esperado: SR008, obtenido: SR008)
+NOTICE:  OK    | P8 sp_confirmar_reserva -> CONFIRMADA  (esperado: CONFIRMADA, obtenido: CONFIRMADA)
+NOTICE:  OK    | P9 Confirmar dos veces -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | P10 sp_cancelar_reserva -> CANCELADA  (esperado: CANCELADA, obtenido: CANCELADA)
+NOTICE:  OK    | P11 La cancelada libera las fechas (nueva reserva igual)  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | P12 Cancelar una CERRADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | P13 Dentro de la transacción la reserva existe  (esperado: 17, obtenido: 17)
+NOTICE:  OK    | P13 ROLLBACK deshace la reserva creada  (esperado: 16, obtenido: 16)
+NOTICE:  OK    | A1 Entregar una SOLICITADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | A2 km de salida menor al del vehículo -> e_parametro_invalido  (esperado: SR007, obtenido: SR007)
+NOTICE:  OK    | A3 sp_iniciar_alquiler crea alquiler ACTIVO  (esperado: ACTIVO, obtenido: ACTIVO)
+NOTICE:  OK    | A3 y deja la reserva ACTIVA  (esperado: ACTIVA, obtenido: ACTIVA)
+NOTICE:  OK    | A4 Segundo alquiler de la misma reserva -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | A5 Cerrar sin inspección -> e_cierre_invalido (RN-05)  (esperado: SR004, obtenido: SR004)
+NOTICE:  OK    | A6 km de entrada menor que salida -> e_parametro_invalido  (esperado: SR007, obtenido: SR007)
+NOTICE:  OK    | A7 Falla a mitad del cierre (tipo de pago inválido)  (esperado: 23514, obtenido: 23514)
+NOTICE:  OK    | A7 y el alquiler sigue ACTIVO sin devolución  (esperado: ACTIVO|, obtenido: ACTIVO|)
+NOTICE:  OK    | A7 y no quedó ningún cargo a medias  (esperado: 0, obtenido: 0)
+NOTICE:  OK    | A8 Total = 330.000 + 110.000 retraso + 100.000 daños  (esperado: 540000.00, obtenido: 540000.00)
+NOTICE:  OK    | A8 Cargo de retraso calculado por la función  (esperado: 110000.00, obtenido: 110000.00)
+NOTICE:  OK    | A8 Pago de prueba registrado  (esperado: 540000.00|APROBADO, obtenido: 540000.00|APROBADO)
+NOTICE:  OK    | A8 Alquiler CERRADO y reserva CERRADA  (esperado: CERRADO|CERRADA, obtenido: CERRADO|CERRADA)
+NOTICE:  OK    | A8 Kilometraje del vehículo actualizado  (esperado: 10200, obtenido: 10200)
+NOTICE:  OK    | A9 Cerrar dos veces -> e_cierre_invalido  (esperado: SR004, obtenido: SR004)
+
+== 2. Concurrencia: dos sesiones reservan el mismo vehículo ==
+Vehículo 10, del 2027-02-03 al 2027-02-05
+----- Sesión A -----
+     ?column?      
+ A inicia 15:34:12
+ param_id_reserva 
+               18
+                    ?column?                    
+ A reservó; mantiene la transacción abierta 3 s
+ pg_sleep 
+ 
+           ?column?           
+ A confirma (COMMIT) 15:34:15
+----- Sesión B -----
+               ?column?                
+ B inicia 15:34:13 (A aún no confirma)
+ERROR:  SR001: e_reserva_solapada: el vehículo 10 ya está reservado entre 2027-02-03 y 2027-02-05; elija otro vehículo o cambie las fechas
+CONTEXT:  PL/pgSQL function sp_crear_reserva(bigint,bigint,date,date,bigint,bigint) line 55 at RAISE
+LOCATION:  exec_stmt_raise, pl_exec.c:3897
+      ?column?      
+ B termina 15:34:15
+----- Reservas vigentes del vehículo 10 en esas fechas (debe ser 1) -----
+1
