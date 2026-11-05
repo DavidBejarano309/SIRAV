@@ -1,0 +1,89 @@
+SIRAV-16 | Evidencia de 01_creacion.sql
+Fecha: 2026-11-05T15:23:41-05:00
+PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+
+== Ejecución 1 de 01_creacion.sql ==
+psql:db/postgres/01_creacion.sql:16: NOTICE:  drop cascades to 14 other objects
+DETAIL:  drop cascades to extension btree_gist
+drop cascades to table sirav.usuario
+drop cascades to table sirav.rol
+drop cascades to table sirav.usuario_rol
+drop cascades to table sirav.cliente
+drop cascades to table sirav.categoria_vehiculo
+drop cascades to table sirav.vehiculo
+drop cascades to table sirav.tarifa
+drop cascades to table sirav.mantenimiento
+drop cascades to table sirav.reserva
+drop cascades to table sirav.alquiler
+drop cascades to table sirav.pago
+drop cascades to table sirav.cargo_adicional
+drop cascades to table sirav.auditoria_reserva
+     table_name     
+--------------------
+ alquiler
+ auditoria_reserva
+ cargo_adicional
+ categoria_vehiculo
+ cliente
+ mantenimiento
+ pago
+ reserva
+ rol
+ tarifa
+ usuario
+ usuario_rol
+ vehiculo
+(13 rows)
+
+== Ejecución 2 (reejecutable desde cero) ==
+OK sin errores
+
+== Índices ix_ ==
+ix_alquiler_estado
+ix_auditoria_reserva_reserva
+ix_auditoria_reserva_usuario
+ix_cargo_adicional_alquiler
+ix_mantenimiento_vehiculo_fechas
+ix_pago_alquiler
+ix_reserva_cliente
+ix_reserva_estado
+ix_reserva_tarifa
+ix_reserva_vehiculo_fechas
+ix_tarifa_categoria_vigencia
+ix_usuario_rol_rol
+ix_vehiculo_categoria_estado
+
+== Pruebas de restricciones ==
+--- P1 (debe fallar ex_reserva_solapada): reserva solapada mismo vehículo
+ERROR:  conflicting key value violates exclusion constraint "ex_reserva_solapada"
+DETAIL:  Key (id_vehiculo, daterange(fecha_inicio, fecha_fin, '[]'::text))=(1, [2026-12-04,2026-12-09)) conflicts with existing key (id_vehiculo, daterange(fecha_inicio, fecha_fin, '[]'::text))=(1, [2026-12-01,2026-12-06)).
+--- P2 (debe funcionar): misma franja pero la primera se cancela
+P2 OK
+--- P3 (debe fallar ck_reserva_fechas): fin antes de inicio
+ERROR:  new row for relation "reserva" violates check constraint "ck_reserva_fechas"
+DETAIL:  Failing row contains (4, 1, 1, 1, 2026-12-20, 2026-12-10, 2026-11-05 15:23:42.430303-05, SOLICITADA).
+--- P4 (debe fallar ck_reserva_estado): estado inválido
+ERROR:  new row for relation "reserva" violates check constraint "ck_reserva_estado"
+DETAIL:  Failing row contains (1, 1, 1, 1, 2026-12-01, 2026-12-05, 2026-11-05 15:23:42.430303-05, PERDIDA).
+--- P5 (debe fallar ex_tarifa_vigencia_solapada): dos tarifas vigentes
+ERROR:  conflicting key value violates exclusion constraint "ex_tarifa_vigencia_solapada"
+DETAIL:  Key (id_categoria, daterange(vigente_desde, vigente_hasta, '[]'::text))=(1, [2026-06-01,)) conflicts with existing key (id_categoria, daterange(vigente_desde, vigente_hasta, '[]'::text))=(1, [2026-01-01,)).
+--- P6 (debe fallar uq_alquiler_id_reserva): dos alquileres por reserva
+ERROR:  duplicate key value violates unique constraint "uq_alquiler_id_reserva"
+DETAIL:  Key (id_reserva)=(1) already exists.
+--- P7 (debe fallar ck_alquiler_km): km de entrada menor que salida
+ERROR:  new row for relation "alquiler" violates check constraint "ck_alquiler_km"
+DETAIL:  Failing row contains (3, 1, 2026-11-05 15:23:42.430303-05, null, 1000, 900, 100.00, null, ACTIVO).
+--- P8 (debe fallar ck_alquiler_cierre): cerrar sin datos de devolución
+ERROR:  new row for relation "alquiler" violates check constraint "ck_alquiler_cierre"
+DETAIL:  Failing row contains (4, 1, 2026-11-05 15:23:42.430303-05, null, 1000, null, 100.00, null, CERRADO).
+--- P9 (debe fallar uq_vehiculo_placa): placa repetida
+ERROR:  duplicate key value violates unique constraint "uq_vehiculo_placa"
+DETAIL:  Key (placa)=(ABC123) already exists.
+--- P10 (debe fallar fk_reserva_vehiculo): vehículo inexistente
+ERROR:  insert or update on table "reserva" violates foreign key constraint "fk_reserva_vehiculo"
+DETAIL:  Key (id_vehiculo)=(999) is not present in table "vehiculo".
+--- P11 (debe fallar ck_pago_monto): pago con monto 0
+ERROR:  new row for relation "pago" violates check constraint "ck_pago_monto"
+DETAIL:  Failing row contains (1, 5, 2026-11-05 15:23:42.430303-05, 0.00, EFECTIVO, PENDIENTE).
+=== Fin de pruebas (todo revertido) ===
