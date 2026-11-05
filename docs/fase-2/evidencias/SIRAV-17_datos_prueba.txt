@@ -1,0 +1,118 @@
+SIRAV-17 | Evidencia de 02_insercion.sql
+Fecha: 2026-11-05T15:28:26-05:00
+
+     table_name     
+--------------------
+ alquiler
+ auditoria_reserva
+ cargo_adicional
+ categoria_vehiculo
+ cliente
+ mantenimiento
+ pago
+ reserva
+ rol
+ tarifa
+ usuario
+ usuario_rol
+ vehiculo
+(13 rows)
+
+== Carga ==
+ setval 
+--------
+      3
+(1 row)
+
+ setval 
+--------
+      8
+(1 row)
+
+ setval 
+--------
+     12
+(1 row)
+
+ setval 
+--------
+      5
+(1 row)
+
+ setval 
+--------
+     10
+(1 row)
+
+ setval 
+--------
+     25
+(1 row)
+
+ setval 
+--------
+      3
+(1 row)
+
+ setval 
+--------
+     13
+(1 row)
+
+ setval 
+--------
+      9
+(1 row)
+
+ setval 
+--------
+      3
+(1 row)
+
+ setval 
+--------
+      8
+(1 row)
+
+       tabla        | count 
+--------------------+-------
+ usuario            |     8
+ cliente            |    12
+ categoria_vehiculo |     5
+ tarifa             |    10
+ vehiculo           |    25
+ reserva            |    13
+ alquiler           |     9
+ pago               |     8
+ cargo_adicional    |     3
+ mantenimiento      |     3
+ auditoria_reserva  |    13
+(11 rows)
+
+== Vehículos por categoría y estado ==
+ categoria | estado_operativo | count 
+-----------+------------------+-------
+ CAMIONETA | DISPONIBLE       |     4
+ CAMIONETA | RESERVADO        |     1
+ COMPACTO  | DISPONIBLE       |     4
+ COMPACTO  | RESERVADO        |     1
+ ECONOMICO | DISPONIBLE       |     4
+ ECONOMICO | MANTENIMIENTO    |     1
+ SEDAN     | DISPONIBLE       |     4
+ SEDAN     | INACTIVO         |     1
+ SUV       | DISPONIBLE       |     4
+ SUV       | ENTREGADO        |     1
+(10 rows)
+
+== Usuarios por perfil ==
+    nombre     | count 
+---------------+-------
+ ADMINISTRADOR |     1
+ CLIENTE       |     5
+ OPERADOR      |     3
+(3 rows)
+
+== Pagos que no cuadran con días x tarifa + cargos (debe ser 0) ==
+0
+== Reservas con tarifa no vigente o de otra categoría (debe ser 0) ==
+0
