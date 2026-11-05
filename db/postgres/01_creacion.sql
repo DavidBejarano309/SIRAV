@@ -12,13 +12,15 @@
 -- =====================================================================
 
 \set ON_ERROR_STOP on
+SET client_min_messages = warning;
+
+-- Necesaria para la restricción de exclusión RN-01 (vehículo + rango de fechas).
+-- Se crea en public para que DROP SCHEMA sirav no la elimine.
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
 
 DROP SCHEMA IF EXISTS sirav CASCADE;
 CREATE SCHEMA sirav;
 SET search_path TO sirav, public;
-
--- Necesaria para la restricción de exclusión RN-01 (vehículo + rango de fechas)
-CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- =====================================================================
 -- 1. ACCESOS Y PERSONAS
