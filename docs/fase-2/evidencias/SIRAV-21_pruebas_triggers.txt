@@ -1,0 +1,42 @@
+SIRAV-21 | Evidencia de 05_triggers.sql
+Fecha: 2026-11-05T15:36:49-05:00
+
+== Triggers instalados ==
+     tabla     |          trigger_name          |    eventos    | momento 
+---------------+--------------------------------+---------------+---------
+ mantenimiento | trg_actualizar_estado_vehiculo | INSERT,UPDATE | AFTER
+ mantenimiento | trg_validar_mantenimiento      | INSERT,UPDATE | BEFORE
+ reserva       | trg_actualizar_estado_vehiculo | INSERT,UPDATE | AFTER
+ reserva       | trg_auditar_reserva            | INSERT,UPDATE | AFTER
+ reserva       | trg_validar_mantenimiento      | INSERT,UPDATE | BEFORE
+ reserva       | trg_validar_transicion_reserva | INSERT,UPDATE | BEFORE
+(6 rows)
+
+== Casos de prueba (rechazos y auditoría) ==
+NOTICE:  OK    | E0 Estado de los 25 vehículos coherente con reservas y mantenimientos  (esperado: 0, obtenido: 0)
+NOTICE:  OK    | T1 Insertar reserva ya CONFIRMADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | T2 SOLICITADA -> ACTIVA (salta la confirmación) -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | T3 CERRADA -> CANCELADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | T4 ACTIVA -> CANCELADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | T5 CANCELADA -> SOLICITADA (reabrir) -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | M1 Mantenimiento encima de reserva CONFIRMADA (vehículo 8) -> e_mantenimiento_solapado  (esperado: SR002, obtenido: SR002)
+NOTICE:  OK    | M2 Reserva directa en fechas de mantenimiento -> e_mantenimiento_solapado  (esperado: SR002, obtenido: SR002)
+NOTICE:  OK    | M3 Mantenimiento CANCELADO ya no bloquea  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | V1 Reserva SOLICITADA: vehículo sigue DISPONIBLE  (esperado: DISPONIBLE, obtenido: DISPONIBLE)
+NOTICE:  OK    | V2 Reserva CONFIRMADA: vehículo RESERVADO  (esperado: RESERVADO, obtenido: RESERVADO)
+NOTICE:  OK    | V3 Alquiler iniciado: vehículo ENTREGADO  (esperado: ENTREGADO, obtenido: ENTREGADO)
+NOTICE:  OK    | V4 Alquiler cerrado: vehículo DISPONIBLE  (esperado: DISPONIBLE, obtenido: DISPONIBLE)
+NOTICE:  OK    | A1 Auditoría: 4 registros (creación + 3 cambios)  (esperado: 4, obtenido: 4)
+NOTICE:  OK    | A2 Secuencia de estados auditada  (esperado: ->SOLICITADA, SOLICITADA->CONFIRMADA, CONFIRMADA->ACTIVA, ACTIVA->CERRADA, obtenido: ->SOLICITADA, SOLICITADA->CONFIRMADA, CONFIRMADA->ACTIVA, ACTIVA->CERRADA)
+NOTICE:  OK    | A3 Usuarios registrados (creó 2, gestionó 3)  (esperado: 2,3,3,3, obtenido: 2,3,3,3)
+NOTICE:  OK    | A4 Observación de la confirmación  (esperado: Reserva confirmada por operador, obtenido: Reserva confirmada por operador)
+NOTICE:  OK    | V5 Confirmada y luego cancelada: vehículo DISPONIBLE  (esperado: DISPONIBLE, obtenido: DISPONIBLE)
+NOTICE:  OK    | A5 Observación del motivo de cancelación  (esperado: Cancelada: Prueba, obtenido: Cancelada: Prueba)
+NOTICE:  OK    | V6 Mantenimiento EN_CURSO: vehículo MANTENIMIENTO  (esperado: MANTENIMIENTO, obtenido: MANTENIMIENTO)
+NOTICE:  OK    | V7 Mantenimiento FINALIZADO: vehículo DISPONIBLE  (esperado: DISPONIBLE, obtenido: DISPONIBLE)
+NOTICE:  OK    | A6 Cambio directo en la tabla queda auditado  (esperado: SOLICITADA->CONFIRMADA, obtenido: SOLICITADA->CONFIRMADA)
+NOTICE:  OK    | V8 y el vehículo 13 pasa a RESERVADO  (esperado: RESERVADO, obtenido: RESERVADO)
+
+== Regresión con triggers activos ==
+03_pruebas_funciones: 25 de 25 OK
+04_pruebas_procedimientos: 31 de 31 OK
