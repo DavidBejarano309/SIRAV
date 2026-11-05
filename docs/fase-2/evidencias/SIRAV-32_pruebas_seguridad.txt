@@ -1,0 +1,92 @@
+SIRAV-32 | Evidencia de 07_seguridad.sql
+Fecha: 2026-11-05T15:42:49-05:00
+
+== Roles ==
+         rol         | login | superusuario |   miembro_de   
+---------------------+-------+--------------+----------------
+ sirav_admin         | f     | f            | 
+ sirav_admin_user    | t     | f            | sirav_admin
+ sirav_app           | f     | f            | 
+ sirav_app_user      | t     | f            | sirav_app
+ sirav_reportes      | f     | f            | 
+ sirav_reportes_user | t     | f            | sirav_reportes
+(6 rows)
+
+== Privilegios por tabla ==
+       tabla        |      sirav_app       | sirav_reportes 
+--------------------+----------------------+----------------
+ alquiler           | SELECT               | SELECT
+ auditoria_reserva  | SELECT               | SELECT
+ cargo_adicional    | SELECT               | SELECT
+ categoria_vehiculo | SELECT               | SELECT
+ cliente            | INSERT,SELECT,UPDATE | SELECT
+ mantenimiento      | INSERT,SELECT,UPDATE | SELECT
+ pago               | SELECT               | SELECT
+ reserva            | SELECT               | SELECT
+ rol                | SELECT               | SELECT
+ tarifa             | SELECT               | SELECT
+ usuario            | INSERT,SELECT,UPDATE | 
+ usuario_rol        | INSERT,SELECT,UPDATE | SELECT
+ vehiculo           | SELECT               | SELECT
+(13 rows)
+
+(sirav_reportes tiene SELECT por columnas en usuario, sin password_hash)
+
+== Procedimientos SECURITY DEFINER ==
+        proname        | security_definer |    dueno    |               proconfig                
+-----------------------+------------------+-------------+----------------------------------------
+ sp_cancelar_reserva   | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+ sp_cerrar_alquiler    | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+ sp_confirmar_reserva  | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+ sp_crear_reserva      | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+ sp_iniciar_alquiler   | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+ sp_registrar_contexto | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
+(6 rows)
+
+== Pruebas por perfil ==
+NOTICE:  OK    | S1 App consulta el catálogo de vehículos  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S2 App lee usuario y password_hash (login BCrypt)  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S3 App usa fn_vehiculo_disponible  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S4 App crea reserva con sp_crear_reserva (SECURITY DEFINER)  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S5 App NO puede borrar reservas  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S6 App NO puede cambiar el estado de una reserva directamente  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S7 App NO puede insertar reservas directamente  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S8 App NO puede registrar pagos directamente  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S9 App NO puede alterar la auditoría  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S10 App registra un cliente nuevo  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S11 App registra un mantenimiento  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | S12 App NO puede cambiar la tarifa  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S13 App NO puede llamar el procedimiento interno de contexto  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | S14 App NO puede crear tablas en el esquema  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | R1 Reportes consulta alquileres y pagos  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | R2 Reportes ve nombre y email de usuarios  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | R3 Reportes NO ve password_hash  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | R4 Reportes NO puede crear reservas  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | R5 Reportes NO puede modificar vehículos  (esperado: 42501, obtenido: 42501)
+NOTICE:  OK    | D1 Admin puede actualizar tarifas  (esperado: SIN_ERROR, obtenido: SIN_ERROR)
+NOTICE:  OK    | D2 Admin sigue sujeto a las reglas (RN-03 en trigger)  (esperado: SR003, obtenido: SR003)
+NOTICE:  OK    | D3 Admin no es superusuario  (esperado: false, obtenido: false)
+NOTICE:  OK    | C1 Los 6 sp_ (5 públicos + contexto) son SECURITY DEFINER con search_path fijo  (esperado: 6, obtenido: 6)
+NOTICE:  OK    | C2 Todos los objetos del esquema pertenecen a sirav_admin  (esperado: 0, obtenido: 0)
+
+== Ejecución completa desde una base vacía (ejecutar_todo.sh) ==
+>> Creando base de datos sirav
+>> 01_creacion.sql
+>> 02_insercion.sql
+>> 03_funciones.sql
+>> 04_procedimientos.sql
+>> 05_triggers.sql
+>> 06_reportes.sql
+>> 07_seguridad.sql
+
+===== Pruebas =====
+pruebas/01_pruebas_creacion.sql            casos OK:  11   FALLO: 0
+pruebas/03_pruebas_funciones.sql           casos OK:  25   FALLO: 0
+pruebas/04_pruebas_procedimientos.sql      casos OK:  31   FALLO: 0
+pruebas/05_pruebas_triggers.sql            casos OK:  23   FALLO: 0
+pruebas/07_pruebas_seguridad.sql           casos OK:  24   FALLO: 0
+>> pruebas/04_concurrencia_dos_sesiones.sh
+----- Reservas vigentes del vehículo 10 en esas fechas (debe ser 1) -----
+1
+
+Todas las pruebas pasaron.

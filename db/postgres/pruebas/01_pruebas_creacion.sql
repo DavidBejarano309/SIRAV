@@ -1,12 +1,23 @@
 -- =====================================================================
 -- SIRAV - 01_pruebas_creacion.sql  (evidencia SIRAV-16 / SIRAV-18)
--- Ejecutar después de 01_creacion.sql. Cada prueba negativa debe fallar
--- con el nombre de la restricción indicada; todo se revierte al final.
+-- Ejecutar después de 01_creacion.sql (sirve con o sin datos y triggers
+-- cargados). Cada prueba negativa debe fallar con el nombre de la
+-- restricción indicada; todo se revierte al final.
 -- =====================================================================
+SET client_min_messages = warning;
 SET search_path TO sirav, public;
 \set ON_ERROR_STOP off
 
 BEGIN;
+
+-- Aislar la prueba: tablas vacías y solo las restricciones del esquema.
+-- DISABLE TRIGGER USER apaga los triggers de 05_triggers.sql pero deja
+-- activas las llaves foráneas. Todo vuelve a su estado con el ROLLBACK.
+TRUNCATE auditoria_reserva, cargo_adicional, pago, alquiler, reserva, mantenimiento,
+         tarifa, vehiculo, categoria_vehiculo, cliente, usuario_rol, rol, usuario
+         RESTART IDENTITY CASCADE;
+ALTER TABLE reserva DISABLE TRIGGER USER;
+ALTER TABLE mantenimiento DISABLE TRIGGER USER;
 
 -- Datos mínimos
 -- Sin IDs explícitos: con IDENTITY un id manual no avanza la secuencia
