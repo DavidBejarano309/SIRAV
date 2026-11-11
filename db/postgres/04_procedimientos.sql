@@ -1,2 +1,0 @@
--- SIRAV | PostgreSQL | 04_procedimientos.sql
--- Pendiente de implementación (ver db/README.md)

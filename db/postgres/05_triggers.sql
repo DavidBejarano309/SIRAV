@@ -1,2 +1,0 @@
--- SIRAV | PostgreSQL | 05_triggers.sql
--- Pendiente de implementación (ver db/README.md)

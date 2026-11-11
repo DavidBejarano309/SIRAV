@@ -29,3 +29,14 @@ Thumbs.db
 # Base de datos local
 *.dump
 *.bson
+# Aplicación SIRAV (Spring Boot + React)
+.tools/
+.runtime/
+backend/target/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+output/*.zip
+backups/
