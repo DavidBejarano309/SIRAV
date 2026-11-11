@@ -2,17 +2,17 @@
 
 ## Del negocio
 
-- Una sola sede y una flota de prueba de 20 a 30 vehículos en 4 o 5 categorías.
+- Una sola sede. Los datos de demostración cargan una flota pequeña por categoría; la propuesta estima una flota real de 20 a 30 vehículos en 4 o 5 categorías.
 - Cada reserva corresponde a un cliente y a un vehículo.
 - Los precios, pagos y cargos son valores de demostración en pesos colombianos; no hay pasarela de pago.
-- Las fotografías de inspección se referencian por nombre de archivo; no se almacenan en la base.
+- Las fotografías de inspección se referencian por nombre o enlace (campo `evidencias`, hasta 10 por inspección); los archivos no se almacenan en la base.
 - Existen tres perfiles de usuario: administrador, operador y cliente.
 
 ## Técnicos
 
 - PostgreSQL es la fuente única de verdad para reservas, alquileres y pagos de prueba.
 - MongoDB guarda inspecciones y bitácora de eventos, enlazadas por el identificador del alquiler.
-- La aplicación y las dos bases de datos se ejecutan en una máquina virtual Ubuntu Server.
+- La aplicación (backend Spring Boot y frontend React) y las dos bases de datos se ejecutan con Docker Compose dentro de una máquina virtual Ubuntu Server.
 - Se dispone de un equipo anfitrión con recursos suficientes para la VM (recomendado: 6 GB de RAM, 2 núcleos y 40 GB de disco).
 - Todo el software usado es gratuito o de código abierto.
 
@@ -24,43 +24,65 @@
 
 ## Derivados de la implementación (Fase 2)
 
-Supuestos que la propuesta no fijaba y que se decidieron al construir la base de datos. Entre paréntesis, el script donde se aplican.
+Supuestos que la propuesta no fijaba y que se decidieron al construir la aplicación SIRAV 3FN. Entre paréntesis, el archivo de `database/postgres/` o del backend donde se aplican.
 
 ### Fechas y cobro
 
 - Todas las fechas y horas se interpretan en la zona horaria de Bogotá (America/Bogota).
-- Los datos de prueba usan fechas relativas al día en que se cargan, para que el historial quede en el pasado y las reservas futuras en el futuro (`02_insercion.sql`).
-- Una reserva ocupa días completos: el vehículo queda bloqueado desde la fecha de inicio hasta la fecha de fin, ambas incluidas (`01_creacion.sql`, RN-01).
-- No se aceptan reservas que empiecen en una fecha pasada (`sp_crear_reserva`).
-- El costo base es el número de días (fecha de fin menos fecha de inicio) por el valor diario de la tarifa, con un mínimo de un día (`fn_calcular_costo`, RN-04).
-- Se aplica la tarifa vigente de la categoría en la fecha de inicio de la reserva. Una categoría no puede tener dos tarifas con vigencias que se crucen (`01_creacion.sql`, `fn_obtener_tarifa_vigente`).
-- Cada día calendario de devolución posterior a la fecha de fin genera un cargo del 50 % de la tarifa diaria; devolver el mismo día de la fecha de fin, a cualquier hora, no es retraso (`fn_calcular_cargo_retraso`, RN-04).
-- Al cerrar un alquiler se registra un único pago de prueba, aprobado, por el costo base más todos los cargos adicionales (`sp_cerrar_alquiler`).
-- El valor de los daños lo estima el operador durante la inspección de devolución y se registra como cargo adicional (`sp_cerrar_alquiler`).
-- El combustible se registra como porcentaje del tanque, de 0 a 100.
+- Una reserva ocupa el intervalo semiabierto `[fecha_inicio, fecha_fin)`: el día de fin el vehículo ya queda libre, así que una reserva puede empezar el mismo día en que termina otra (`01-schema.sql`, `ex_RESERVA_vehiculo_periodo`, RN-01).
+- La fecha de fin debe ser posterior a la de inicio, y no se aceptan reservas que empiecen antes de hoy (`sp_crear_reserva`).
+- El costo base es el número de días (fecha de fin menos fecha de inicio) por el valor diario de la tarifa (`fn_calcular_costo`, RN-04).
+- La tarifa aplicada es la de la categoría del vehículo cuya vigencia cubre todo el período reservado. Una categoría no puede tener dos tarifas con vigencias que se crucen (`ex_tarifa`, `sp_crear_reserva`).
+- Una reserva no se modifica: para cambiar fechas, vehículo o cliente se cancela y se crea otra (`trg_validar_reserva`).
+- Cada día calendario de devolución posterior a la fecha de fin genera un cargo del 50 % de la tarifa diaria; devolver el día de fin no es retraso (`fn_calcular_cargo_retraso`, RN-04).
+- Al cerrar un alquiler se registra un único pago **simulado** y aprobado por el costo base más los cargos adicionales; no hay pasarela de pago (`sp_cerrar_alquiler`).
+- El kilometraje nunca disminuye y el combustible se registra como porcentaje del tanque, de 0 a 100 (`ck_alquiler`, `sp_iniciar_alquiler`).
+- La entrega del vehículo solo puede hacerse dentro del período reservado (`sp_iniciar_alquiler`).
+- Si la aplicación reintenta la creación de una reserva con la misma clave de idempotencia, se devuelve la reserva ya creada; si la clave llega con otros datos, se rechaza (`sp_crear_reserva`).
 
 ### Disponibilidad de la flota
 
-- Solo bloquean un vehículo las reservas en estado SOLICITADA, CONFIRMADA o ACTIVA; las CERRADAS y CANCELADAS no (RN-01).
-- Un mantenimiento PROGRAMADO o EN_CURSO bloquea las reservas en esas fechas; uno FINALIZADO o CANCELADO no (RN-02, `trg_validar_mantenimiento`, `fn_vehiculo_disponible`).
-- Un vehículo INACTIVO no se puede reservar. Ese estado lo fija el administrador y los triggers no lo cambian.
-- El estado del vehículo se calcula a partir de sus reservas y mantenimientos, con esta prioridad: INACTIVO, ENTREGADO, MANTENIMIENTO, RESERVADO y DISPONIBLE (`trg_actualizar_estado_vehiculo`).
+- Solo bloquean un vehículo las reservas SOLICITADA, CONFIRMADA o ACTIVA; las CERRADAS y CANCELADAS no (RN-01).
+- Un mantenimiento PROGRAMADO bloquea las reservas en sus fechas; uno COMPLETADO o CANCELADO no. Tampoco se puede programar un mantenimiento encima de una reserva vigente (RN-02, `trg_validar_mantenimiento`, `fn_vehiculo_disponible`).
+- Un vehículo INACTIVO no se puede reservar ni entregar. Ese estado lo fija el administrador.
+- El estado del vehículo pasa a ALQUILADO al entregarlo y vuelve a DISPONIBLE al cerrar el alquiler (`trg_actualizar_estado_vehiculo`). La disponibilidad por fechas no depende de esa columna, sino de las reservas y los mantenimientos.
 
 ### Estados definidos por el equipo
 
-La propuesta fija los estados de la reserva. Los demás se definieron así (`01_creacion.sql`):
+La propuesta fija los estados de la reserva (SOLICITADA, CONFIRMADA, ACTIVA, CERRADA, CANCELADA). Los demás se definieron así (`02-integrity.sql`):
 
 | Tabla | Valores |
 |---|---|
-| Alquiler (estado) | ACTIVO, CERRADO |
-| Pago (estado) | PENDIENTE, APROBADO, RECHAZADO, ANULADO |
-| Pago (tipo) | EFECTIVO, TARJETA, TRANSFERENCIA, PRUEBA |
-| Cargo adicional (concepto) | RETRASO, COMBUSTIBLE, DANO, LIMPIEZA, KILOMETRAJE, OTRO |
-| Mantenimiento (estado) | PROGRAMADO, EN_CURSO, FINALIZADO, CANCELADO |
-| Vehículo (estado operativo) | DISPONIBLE, RESERVADO, ENTREGADO, MANTENIMIENTO, INACTIVO |
+| Alquiler (estado) | ACTIVA, CERRADA |
+| Pago (estado) | APROBADO, ANULADO |
+| Pago (tipo) | SIMULADO |
+| Mantenimiento (estado) | PROGRAMADO, COMPLETADO, CANCELADO |
+| Vehículo (estado operativo) | DISPONIBLE, ALQUILADO, INACTIVO |
+
+### Errores de negocio
+
+Cada regla que la base rechaza devuelve un código propio y el nombre de la excepción; la aplicación los muestra como error 409 (`02-integrity.sql`, `03-procedures.sql`, `ApiErrors.java`).
+
+| Código | Excepción | Cuándo ocurre |
+|---|---|---|
+| SR001 | `e_reserva_solapada` | Otra reserva vigente ocupa el período |
+| SR002 | `e_mantenimiento_solapado` | El período cruza un mantenimiento programado |
+| SR003 | `e_transicion_invalida` | Cambio de estado no permitido o reserva modificada |
+| SR004 | `e_inspeccion_requerida` | Falta la inspección de entrega o devolución |
+| SR005 | `e_vehiculo_no_disponible` | Vehículo inactivo, inexistente o no apto para entrega |
+| SR006 | `e_tarifa_no_vigente` | Ninguna tarifa cubre el período |
+| SR007 | `e_parametro_invalido` | Fechas, motivo, kilometraje o clave de idempotencia inválidos |
 
 ### Personas y acceso
 
-- Un cliente puede registrarse en mostrador sin tener cuenta en la aplicación; la relación con usuario es opcional (1:1).
-- Un usuario puede tener varios perfiles a la vez; por ejemplo, el administrador también es operador.
-- La aplicación se conecta con un usuario de base de datos de mínimo privilegio y solo modifica reservas, alquileres y pagos a través de los procedimientos `sp_` (`07_seguridad.sql`).
+- Un cliente puede registrarse en mostrador sin cuenta en la aplicación. Si tiene cuenta, su nombre y correo salen del usuario y no se repiten en cliente (`ck_CLIENTE_origen_identidad`, vista `v_cliente_contacto`).
+- Un usuario puede tener varios perfiles a la vez (tabla `usuario_rol`).
+- La aplicación se conecta con el usuario de base de datos `sirav_app`, que no puede insertar, modificar ni borrar directamente reservas, alquileres, pagos ni auditoría: lo hace solo a través de los procedimientos `sp_` (`05-permissions.sql`).
+- Para consultas y reportes existe el perfil `sirav_reportes`, de solo lectura, que no ve contraseñas; el perfil `sirav_admin` administra catálogo, tarifas y mantenimientos (`05-permissions.sql`).
+- Al cerrar sesión se invalidan todos los tokens emitidos al usuario (`usuario.token_version`).
+
+### MongoDB
+
+- Cada alquiler tiene como máximo una inspección de entrega y una de devolución (índice único `alquilerId` + `tipo`).
+- Las inspecciones no se borran: se anulan de forma lógica y guardan su historial de versiones.
+- Las inspecciones y la bitácora llegan a MongoDB a través de la tabla `evento_outbox`: si MongoDB no está disponible, la operación en PostgreSQL no se pierde y el evento se publica después (`OutboxPublisher`).
