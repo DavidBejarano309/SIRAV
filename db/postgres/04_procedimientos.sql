@@ -104,7 +104,7 @@ BEGIN
   SELECT EXISTS (
     SELECT 1 FROM mantenimiento m
      WHERE m.id_vehiculo = param_id_vehiculo
-       AND m.estado <> 'CANCELADO'
+       AND m.estado IN ('PROGRAMADO', 'EN_CURSO')
        AND daterange(m.fecha_inicio, m.fecha_fin, '[]') && daterange(param_fecha_inicio, param_fecha_fin, '[]')
   ) INTO vb_mantenimiento;
 
