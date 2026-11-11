@@ -1,5 +1,6 @@
 SIRAV-32 | Evidencia de 07_seguridad.sql
-Fecha: 2026-11-05T15:42:49-05:00
+Fecha: 2026-11-11T18:07:38-05:00 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu
+Datos de prueba con fechas relativas al día de ejecución
 
 == Roles ==
          rol         | login | superusuario |   miembro_de   
@@ -10,37 +11,6 @@ Fecha: 2026-11-05T15:42:49-05:00
  sirav_app_user      | t     | f            | sirav_app
  sirav_reportes      | f     | f            | 
  sirav_reportes_user | t     | f            | sirav_reportes
-(6 rows)
-
-== Privilegios por tabla ==
-       tabla        |      sirav_app       | sirav_reportes 
---------------------+----------------------+----------------
- alquiler           | SELECT               | SELECT
- auditoria_reserva  | SELECT               | SELECT
- cargo_adicional    | SELECT               | SELECT
- categoria_vehiculo | SELECT               | SELECT
- cliente            | INSERT,SELECT,UPDATE | SELECT
- mantenimiento      | INSERT,SELECT,UPDATE | SELECT
- pago               | SELECT               | SELECT
- reserva            | SELECT               | SELECT
- rol                | SELECT               | SELECT
- tarifa             | SELECT               | SELECT
- usuario            | INSERT,SELECT,UPDATE | 
- usuario_rol        | INSERT,SELECT,UPDATE | SELECT
- vehiculo           | SELECT               | SELECT
-(13 rows)
-
-(sirav_reportes tiene SELECT por columnas en usuario, sin password_hash)
-
-== Procedimientos SECURITY DEFINER ==
-        proname        | security_definer |    dueno    |               proconfig                
------------------------+------------------+-------------+----------------------------------------
- sp_cancelar_reserva   | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
- sp_cerrar_alquiler    | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
- sp_confirmar_reserva  | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
- sp_crear_reserva      | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
- sp_iniciar_alquiler   | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
- sp_registrar_contexto | t                | sirav_admin | {"search_path=sirav, public, pg_temp"}
 (6 rows)
 
 == Pruebas por perfil ==
@@ -81,7 +51,7 @@ NOTICE:  OK    | C2 Todos los objetos del esquema pertenecen a sirav_admin  (esp
 
 ===== Pruebas =====
 pruebas/01_pruebas_creacion.sql            casos OK:  11   FALLO: 0
-pruebas/03_pruebas_funciones.sql           casos OK:  25   FALLO: 0
+pruebas/03_pruebas_funciones.sql           casos OK:  26   FALLO: 0
 pruebas/04_pruebas_procedimientos.sql      casos OK:  31   FALLO: 0
 pruebas/05_pruebas_triggers.sql            casos OK:  23   FALLO: 0
 pruebas/07_pruebas_seguridad.sql           casos OK:  24   FALLO: 0

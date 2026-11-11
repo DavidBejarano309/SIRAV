@@ -1,22 +1,6 @@
 SIRAV-17 | Evidencia de 02_insercion.sql
-Fecha: 2026-11-05T15:28:26-05:00
-
-     table_name     
---------------------
- alquiler
- auditoria_reserva
- cargo_adicional
- categoria_vehiculo
- cliente
- mantenimiento
- pago
- reserva
- rol
- tarifa
- usuario
- usuario_rol
- vehiculo
-(13 rows)
+Fecha: 2026-11-11T18:07:34-05:00 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu
+Datos de prueba con fechas relativas al día de ejecución
 
 == Carga ==
  setval 
@@ -88,6 +72,15 @@ Fecha: 2026-11-05T15:28:26-05:00
  mantenimiento      |     3
  auditoria_reserva  |    13
 (11 rows)
+
+== Reservas vigentes y su fecha frente a hoy ==
+ id_reserva |   estado   | fecha_inicio | fecha_fin  | dias_desde_hoy 
+------------+------------+--------------+------------+----------------
+         10 | ACTIVA     | 2026-11-09   | 2026-11-14 |             -2
+         11 | CONFIRMADA | 2026-11-13   | 2026-11-15 |              2
+         12 | SOLICITADA | 2026-11-20   | 2026-11-25 |              9
+         13 | CONFIRMADA | 2026-12-01   | 2026-12-05 |             20
+(4 rows)
 
 == Vehículos por categoría y estado ==
  categoria | estado_operativo | count 

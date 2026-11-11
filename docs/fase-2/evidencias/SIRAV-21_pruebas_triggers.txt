@@ -1,5 +1,6 @@
 SIRAV-21 | Evidencia de 05_triggers.sql
-Fecha: 2026-11-05T15:36:49-05:00
+Fecha: 2026-11-11T18:07:38-05:00 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu
+Datos de prueba con fechas relativas al día de ejecución
 
 == Triggers instalados ==
      tabla     |          trigger_name          |    eventos    | momento 
@@ -12,7 +13,7 @@ Fecha: 2026-11-05T15:36:49-05:00
  reserva       | trg_validar_transicion_reserva | INSERT,UPDATE | BEFORE
 (6 rows)
 
-== Casos de prueba (rechazos y auditoría) ==
+== Casos de prueba ==
 NOTICE:  OK    | E0 Estado de los 25 vehículos coherente con reservas y mantenimientos  (esperado: 0, obtenido: 0)
 NOTICE:  OK    | T1 Insertar reserva ya CONFIRMADA -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
 NOTICE:  OK    | T2 SOLICITADA -> ACTIVA (salta la confirmación) -> e_transicion_invalida  (esperado: SR003, obtenido: SR003)
@@ -38,5 +39,5 @@ NOTICE:  OK    | A6 Cambio directo en la tabla queda auditado  (esperado: SOLICI
 NOTICE:  OK    | V8 y el vehículo 13 pasa a RESERVADO  (esperado: RESERVADO, obtenido: RESERVADO)
 
 == Regresión con triggers activos ==
-03_pruebas_funciones: 25 de 25 OK
+03_pruebas_funciones: 26 de 26 OK
 04_pruebas_procedimientos: 31 de 31 OK

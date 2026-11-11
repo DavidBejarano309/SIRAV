@@ -1,5 +1,6 @@
 SIRAV-20 / SIRAV-24 | Evidencia de 04_procedimientos.sql
-Fecha: 2026-11-05T15:34:11-05:00
+Fecha: 2026-11-11T18:07:35-05:00 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu
+Datos de prueba con fechas relativas al día de ejecución
 
 == 1. Casos de prueba (transacción revertida al final) ==
 NOTICE:  OK    | P1 sp_crear_reserva deja la reserva SOLICITADA  (esperado: SOLICITADA, obtenido: SOLICITADA)
@@ -35,10 +36,10 @@ NOTICE:  OK    | A8 Kilometraje del vehículo actualizado  (esperado: 10200, obt
 NOTICE:  OK    | A9 Cerrar dos veces -> e_cierre_invalido  (esperado: SR004, obtenido: SR004)
 
 == 2. Concurrencia: dos sesiones reservan el mismo vehículo ==
-Vehículo 10, del 2027-02-03 al 2027-02-05
+Vehículo 10, del 2027-02-09 al 2027-02-11
 ----- Sesión A -----
      ?column?      
- A inicia 15:34:12
+ A inicia 18:07:35
  param_id_reserva 
                18
                     ?column?                    
@@ -46,14 +47,14 @@ Vehículo 10, del 2027-02-03 al 2027-02-05
  pg_sleep 
  
            ?column?           
- A confirma (COMMIT) 15:34:15
+ A confirma (COMMIT) 18:07:38
 ----- Sesión B -----
                ?column?                
- B inicia 15:34:13 (A aún no confirma)
-ERROR:  SR001: e_reserva_solapada: el vehículo 10 ya está reservado entre 2027-02-03 y 2027-02-05; elija otro vehículo o cambie las fechas
+ B inicia 18:07:36 (A aún no confirma)
+ERROR:  SR001: e_reserva_solapada: el vehículo 10 ya está reservado entre 2027-02-09 y 2027-02-11; elija otro vehículo o cambie las fechas
 CONTEXT:  PL/pgSQL function sp_crear_reserva(bigint,bigint,date,date,bigint,bigint) line 55 at RAISE
 LOCATION:  exec_stmt_raise, pl_exec.c:3897
       ?column?      
- B termina 15:34:15
+ B termina 18:07:38
 ----- Reservas vigentes del vehículo 10 en esas fechas (debe ser 1) -----
 1

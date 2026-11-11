@@ -1,33 +1,34 @@
 SIRAV-19 | Evidencia de 03_funciones.sql
-Fecha: 2026-11-05T15:30:22-05:00
-Base: 01_creacion.sql + 02_insercion.sql + 03_funciones.sql
+Fecha: 2026-11-11T18:07:35-05:00 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu
+Datos de prueba con fechas relativas al día de ejecución
 
-                         caso                         |  esperado  |  obtenido  | resultado 
-------------------------------------------------------+------------+------------+-----------
- D1 Vehículo 4 libre en enero 2027                    | true       | true       | OK
- D2 Vehículo 8 con reserva CONFIRMADA 10-12 nov       | false      | false      | OK
- D3 Solape solo en el borde (12 nov) también choca    | false      | false      | OK
- D4 Vehículo 8 libre el día siguiente (13 nov)        | true       | true       | OK
- D5 Excluyendo su propia reserva (11) queda libre     | true       | true       | OK
- D6 Reserva CANCELADA no bloquea (vehículo 3)         | true       | true       | OK
- D7 Reserva CERRADA no bloquea (vehículo 1)           | true       | true       | OK
- D8 Mantenimiento EN_CURSO bloquea (vehículo 5)       | false      | false      | OK
- D9 Mantenimiento PROGRAMADO bloquea (vehículo 18)    | false      | false      | OK
- D10 Vehículo INACTIVO nunca disponible (15)          | false      | false      | OK
- D11 Alquiler ACTIVO bloquea (vehículo 17)            | false      | false      | OK
- D12 Fechas invertidas -> e_parametro_invalido        | SR007      | SR007      | OK
- D13 Vehículo inexistente -> e_registro_no_encontrado | SR008      | SR008      | OK
- T1 Tarifa vigente ECONOMICO hoy = 6                  | 6          | 6          | OK
- T2 Tarifa histórica ECONOMICO en marzo = 1           | 1          | 1          | OK
- T3 Sin tarifa en 2025 -> e_tarifa_no_vigente         | SR006      | SR006      | OK
- C1 3 días x 110.000 = 330.000                        | 330000.00  | 330000.00  | OK
- C2 7 días x 230.000 = 1.610.000                      | 1610000.00 | 1610000.00 | OK
- C3 Mismo día se cobra 1 día = 280.000                | 280000.00  | 280000.00  | OK
- C4 Tarifa inexistente -> e_registro_no_encontrado    | SR008      | SR008      | OK
- R1 Alquiler 3, 2 días tarde x 85.000 = 170.000       | 170000.00  | 170000.00  | OK
- R2 Alquiler 1 devuelto a tiempo = 0                  | 0.00       | 0.00       | OK
- R3 Alquiler 9 (SUV) devuelto 10 nov: 2 x 115.000     | 230000.00  | 230000.00  | OK
- R4 Devolución 8 nov 23:30 Bogotá no es retraso       | 0.00       | 0.00       | OK
- R5 Alquiler inexistente -> e_registro_no_encontrado  | SR008      | SR008      | OK
-(25 rows)
+                          caso                          |  esperado  |  obtenido  | resultado 
+--------------------------------------------------------+------------+------------+-----------
+ D1 Vehículo 4 libre en enero 2027                      | true       | true       | OK
+ D2 Vehículo 8 con reserva CONFIRMADA (hoy+2 a hoy+4)   | false      | false      | OK
+ D3 Solape solo en el borde (hoy+4) también choca       | false      | false      | OK
+ D4 Vehículo 8 libre el día siguiente (hoy+5)           | true       | true       | OK
+ D5 Excluyendo su propia reserva (11) queda libre       | true       | true       | OK
+ D6 Reserva CANCELADA no bloquea (vehículo 3)           | true       | true       | OK
+ D7 Reserva CERRADA no bloquea (vehículo 1)             | true       | true       | OK
+ D8 Mantenimiento EN_CURSO bloquea (vehículo 5)         | false      | false      | OK
+ D9 Mantenimiento PROGRAMADO bloquea (vehículo 18)      | false      | false      | OK
+ D10 Vehículo INACTIVO nunca disponible (15)            | false      | false      | OK
+ D14 Mantenimiento FINALIZADO no bloquea (vehículo 1)   | true       | true       | OK
+ D11 Alquiler ACTIVO bloquea (vehículo 17)              | false      | false      | OK
+ D12 Fechas invertidas -> e_parametro_invalido          | SR007      | SR007      | OK
+ D13 Vehículo inexistente -> e_registro_no_encontrado   | SR008      | SR008      | OK
+ T1 Tarifa vigente ECONOMICO hoy = 6                    | 6          | 6          | OK
+ T2 Tarifa histórica ECONOMICO hace 200 días = 1        | 1          | 1          | OK
+ T3 Sin tarifa hace 400 días -> e_tarifa_no_vigente     | SR006      | SR006      | OK
+ C1 3 días x 110.000 = 330.000                          | 330000.00  | 330000.00  | OK
+ C2 7 días x 230.000 = 1.610.000                        | 1610000.00 | 1610000.00 | OK
+ C3 Mismo día se cobra 1 día = 280.000                  | 280000.00  | 280000.00  | OK
+ C4 Tarifa inexistente -> e_registro_no_encontrado      | SR008      | SR008      | OK
+ R1 Alquiler 3, 2 días tarde x 85.000 = 170.000         | 170000.00  | 170000.00  | OK
+ R2 Alquiler 1 devuelto a tiempo = 0                    | 0.00       | 0.00       | OK
+ R3 Alquiler 9 (SUV) devuelto 2 días tarde: 2 x 115.000 | 230000.00  | 230000.00  | OK
+ R4 Devolución el día final a las 23:30 no es retraso   | 0.00       | 0.00       | OK
+ R5 Alquiler inexistente -> e_registro_no_encontrado    | SR008      | SR008      | OK
+(26 rows)
 
