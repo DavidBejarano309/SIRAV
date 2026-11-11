@@ -5,6 +5,7 @@
 -- =====================================================================
 SET client_min_messages = notice;
 SET search_path TO sirav, public;
+SET TIME ZONE 'America/Bogota';
 
 BEGIN;
 
@@ -60,7 +61,9 @@ BEGIN
   -- 2. trg_validar_mantenimiento (RN-02), desde los dos lados
   -- -------------------------------------------------------------------
   PERFORM pg_temp.fn_verificar('M1 Mantenimiento encima de reserva CONFIRMADA (vehículo 8) -> e_mantenimiento_solapado', 'SR002',
-    pg_temp.fn_sqlstate_de('INSERT INTO sirav.mantenimiento (id_vehiculo, fecha_inicio, fecha_fin, descripcion) VALUES (8, ''2026-11-11'', ''2026-11-13'', ''x'')'));
+    pg_temp.fn_sqlstate_de(format(
+      'INSERT INTO sirav.mantenimiento (id_vehiculo, fecha_inicio, fecha_fin, descripcion) VALUES (8, %L, %L, ''x'')',
+      vd_hoy + 3, vd_hoy + 5)));
   INSERT INTO mantenimiento (id_vehiculo, fecha_inicio, fecha_fin, descripcion)
   VALUES (9, vd_hoy + 50, vd_hoy + 52, 'Prueba de trigger') RETURNING id_mantenimiento INTO vn_id_mant;
   PERFORM pg_temp.fn_verificar('M2 Reserva directa en fechas de mantenimiento -> e_mantenimiento_solapado', 'SR002',
