@@ -1,0 +1,8 @@
+# Ajuste para la máquina virtual: publica la interfaz web en todas las interfaces de red
+# de la VM (puerto 8088) para abrirla desde el navegador del equipo anfitrión.
+# Las bases de datos y el backend siguen sin puertos publicados.
+# Uso: docker compose -f compose.yaml -f compose.vm.yaml up --build -d
+services:
+  frontend:
+    ports: !override
+      - "8088:80"

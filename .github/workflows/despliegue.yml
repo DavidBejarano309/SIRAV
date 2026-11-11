@@ -1,0 +1,69 @@
+name: SIRAV despliegue Docker
+# Ejecuta la guía docs/fase-2/guia-instalacion.md en un Ubuntu limpio:
+# construye las cuatro imágenes, levanta el sistema, lo verifica de punta a punta,
+# saca respaldos y comprueba que se pueden restaurar.
+on:
+  push:
+    paths:
+      - compose*.yaml
+      - backend/**
+      - frontend/**
+      - database/**
+      - scripts/**
+      - .github/workflows/despliegue.yml
+  workflow_dispatch:
+jobs:
+  despliegue:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versiones
+        run: docker --version && docker compose version && lsb_release -ds
+      - name: 1. Configurar secretos (.env)
+        run: bash scripts/configure.sh
+      - name: 2. Validar la configuración de Compose para la VM
+        run: docker compose -f compose.yaml -f compose.vm.yaml config --quiet && docker compose -f compose.yaml -f compose.vm.yaml config | grep -A3 'ports:'
+      - name: 3. Construir y arrancar (como en la VM)
+        run: docker compose -f compose.yaml -f compose.vm.yaml up --build -d --wait postgres mongo && docker compose -f compose.yaml -f compose.vm.yaml up --build -d
+      - name: 4. Estado de los contenedores
+        run: docker compose ps
+      - name: 5. Verificación de punta a punta
+        run: bash scripts/verificar-despliegue.sh http://localhost:8088 | tee verificacion.txt
+      - name: 6. Las bases no quedan expuestas
+        run: |
+          docker compose -f compose.yaml -f compose.vm.yaml ps --format '{{.Service}} {{.Ports}}' | tee puertos.txt
+          ! grep -E '5432|27017' puertos.txt | grep -q '0.0.0.0'
+      - name: 7. Respaldo (pg_dump y mongodump)
+        run: bash scripts/backup.sh && ls -la backups/*/
+      - name: 8. Restaurar el respaldo en bases de prueba y comparar
+        run: |
+          set -a; source .env; set +a
+          dir=$(ls -d backups/* | tail -1)
+          docker compose exec -T postgres createdb -U sirav_owner sirav_restaurada
+          docker compose exec -T postgres pg_restore -U sirav_owner -d sirav_restaurada --no-owner < "$dir/postgres.dump"
+          for db in sirav_3fn sirav_restaurada; do
+            docker compose exec -T postgres psql -U sirav_owner -d $db -Atc "SELECT '$db', (SELECT count(*) FROM reserva), (SELECT count(*) FROM alquiler), (SELECT count(*) FROM pago)"
+          done | tee restauracion.txt
+          docker compose exec -T mongo sh -c 'mongorestore --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --nsFrom "sirav_3fn.*" --nsTo "sirav_restaurada.*"' < "$dir/mongodb.archive.gz"
+          docker compose exec -T mongo sh -c 'mongosh --quiet --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "for (const d of [\"sirav_3fn\",\"sirav_restaurada\"]) print(d, db.getSiblingDB(d).inspecciones_vehiculo.countDocuments(), db.getSiblingDB(d).bitacora_operaciones.countDocuments())"' | tee -a restauracion.txt
+          test "$(sed -n 1p restauracion.txt | cut -d'|' -f2-)" = "$(sed -n 2p restauracion.txt | cut -d'|' -f2-)"
+      - name: 9. Reinicio (los datos persisten en los volúmenes)
+        run: |
+          docker compose -f compose.yaml -f compose.vm.yaml restart
+          for i in $(seq 1 60); do curl -fsS http://localhost:8088/actuator/health | grep -q UP && break; sleep 2; done
+          docker compose exec -T postgres psql -U sirav_owner -d sirav_3fn -Atc "SELECT 'reservas tras reinicio: '||count(*) FROM reserva" | tee -a restauracion.txt
+      - name: Registros si algo falla
+        if: failure()
+        run: docker compose logs --tail=200
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencia-despliegue
+          path: |
+            verificacion.txt
+            puertos.txt
+            restauracion.txt
+      - name: Detener
+        if: always()
+        run: docker compose down -v
