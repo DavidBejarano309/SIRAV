@@ -279,7 +279,7 @@ COMMENT ON TABLE cliente            IS 'Personas que reservan; cuenta de usuario
 COMMENT ON TABLE categoria_vehiculo IS 'Agrupación de la flota (económico, SUV, etc.)';
 COMMENT ON TABLE vehiculo           IS 'Flota de vehículos';
 COMMENT ON TABLE tarifa             IS 'Valor diario por categoría con vigencia sin solapamiento';
-COMMENT ON TABLE mantenimiento      IS 'Periodos de mantenimiento; bloquean reservas (RN-03)';
+COMMENT ON TABLE mantenimiento      IS 'Periodos de mantenimiento; bloquean reservas (RN-02)';
 COMMENT ON TABLE reserva            IS 'Solicitudes de uso de un vehículo; RN-01 por restricción de exclusión';
 COMMENT ON TABLE alquiler           IS 'Ejecución de una reserva (1:1): entrega y devolución';
 COMMENT ON TABLE pago               IS 'Pagos asociados a un alquiler';
