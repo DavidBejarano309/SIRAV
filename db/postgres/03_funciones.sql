@@ -65,7 +65,7 @@ COMMENT ON FUNCTION fn_obtener_tarifa_vigente(BIGINT, DATE)
 -- TRUE si el vehículo puede reservarse en [fecha_inicio, fecha_fin]:
 --   - existe y no está INACTIVO
 --   - no tiene reservas SOLICITADA, CONFIRMADA o ACTIVA solapadas (RN-01)
---   - no tiene mantenimientos no cancelados solapados (RN-02)
+--   - no tiene mantenimientos PROGRAMADOS o EN_CURSO solapados (RN-02)
 -- param_id_reserva_excluir permite ignorar una reserva propia (al
 -- reprogramar o confirmar). Las fechas se tratan como rango cerrado.
 -- ---------------------------------------------------------------------
@@ -116,7 +116,7 @@ BEGIN
     SELECT 1
       FROM mantenimiento m
      WHERE m.id_vehiculo = param_id_vehiculo
-       AND m.estado <> 'CANCELADO'
+       AND m.estado IN ('PROGRAMADO', 'EN_CURSO')
        AND daterange(m.fecha_inicio, m.fecha_fin, '[]')
            && daterange(param_fecha_inicio, param_fecha_fin, '[]')
   ) INTO vb_hay_mantenimiento;

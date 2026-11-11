@@ -5,6 +5,11 @@
 -- =====================================================================
 SET client_min_messages = warning;
 SET search_path TO sirav, public;
+SET TIME ZONE 'America/Bogota';
+
+-- Las fechas de los datos de prueba son relativas al día de ejecución
+-- (ver 02_insercion.sql); los casos usan CURRENT_DATE + n con los mismos
+-- desplazamientos.
 
 -- Auxiliar de prueba: ejecuta una sentencia y devuelve el SQLSTATE del error
 -- (o 'SIN_ERROR'). Vive en pg_temp, desaparece al cerrar la sesión.
@@ -20,23 +25,24 @@ $$;
 
 WITH casos(caso, esperado, obtenido) AS (VALUES
   -- fn_vehiculo_disponible
-  ('D1 Vehículo 4 libre en enero 2027',                 'true',  fn_vehiculo_disponible(4, '2027-01-10', '2027-01-12')::text),
-  ('D2 Vehículo 8 con reserva CONFIRMADA 10-12 nov',    'false', fn_vehiculo_disponible(8, '2026-11-11', '2026-11-15')::text),
-  ('D3 Solape solo en el borde (12 nov) también choca', 'false', fn_vehiculo_disponible(8, '2026-11-12', '2026-11-14')::text),
-  ('D4 Vehículo 8 libre el día siguiente (13 nov)',     'true',  fn_vehiculo_disponible(8, '2026-11-13', '2026-11-15')::text),
-  ('D5 Excluyendo su propia reserva (11) queda libre',  'true',  fn_vehiculo_disponible(8, '2026-11-10', '2026-11-12', 11)::text),
-  ('D6 Reserva CANCELADA no bloquea (vehículo 3)',      'true',  fn_vehiculo_disponible(3, '2026-10-22', '2026-10-24')::text),
-  ('D7 Reserva CERRADA no bloquea (vehículo 1)',        'true',  fn_vehiculo_disponible(1, '2026-09-02', '2026-09-03')::text),
-  ('D8 Mantenimiento EN_CURSO bloquea (vehículo 5)',    'false', fn_vehiculo_disponible(5, '2026-11-08', '2026-11-10')::text),
-  ('D9 Mantenimiento PROGRAMADO bloquea (vehículo 18)', 'false', fn_vehiculo_disponible(18, '2026-11-26', '2026-11-28')::text),
-  ('D10 Vehículo INACTIVO nunca disponible (15)',       'false', fn_vehiculo_disponible(15, '2027-02-01', '2027-02-03')::text),
-  ('D11 Alquiler ACTIVO bloquea (vehículo 17)',         'false', fn_vehiculo_disponible(17, '2026-11-05', '2026-11-06')::text),
-  ('D12 Fechas invertidas -> e_parametro_invalido',     'SR007', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_vehiculo_disponible(4, '2027-01-12', '2027-01-10')$$)),
-  ('D13 Vehículo inexistente -> e_registro_no_encontrado','SR008', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_vehiculo_disponible(999, '2027-01-10', '2027-01-12')$$)),
+  ('D1 Vehículo 4 libre en enero 2027',                 'true',  fn_vehiculo_disponible(4, CURRENT_DATE + 60, CURRENT_DATE + 62)::text),
+  ('D2 Vehículo 8 con reserva CONFIRMADA (hoy+2 a hoy+4)', 'false', fn_vehiculo_disponible(8, CURRENT_DATE + 3, CURRENT_DATE + 7)::text),
+  ('D3 Solape solo en el borde (hoy+4) también choca',   'false', fn_vehiculo_disponible(8, CURRENT_DATE + 4, CURRENT_DATE + 6)::text),
+  ('D4 Vehículo 8 libre el día siguiente (hoy+5)',      'true',  fn_vehiculo_disponible(8, CURRENT_DATE + 5, CURRENT_DATE + 7)::text),
+  ('D5 Excluyendo su propia reserva (11) queda libre',  'true',  fn_vehiculo_disponible(8, CURRENT_DATE + 2, CURRENT_DATE + 4, 11)::text),
+  ('D6 Reserva CANCELADA no bloquea (vehículo 3)',      'true',  fn_vehiculo_disponible(3, CURRENT_DATE - 19, CURRENT_DATE - 17)::text),
+  ('D7 Reserva CERRADA no bloquea (vehículo 1)',        'true',  fn_vehiculo_disponible(1, CURRENT_DATE - 69, CURRENT_DATE - 68)::text),
+  ('D8 Mantenimiento EN_CURSO bloquea (vehículo 5)',    'false', fn_vehiculo_disponible(5, CURRENT_DATE + 3, CURRENT_DATE + 5)::text),
+  ('D9 Mantenimiento PROGRAMADO bloquea (vehículo 18)', 'false', fn_vehiculo_disponible(18, CURRENT_DATE + 15, CURRENT_DATE + 17)::text),
+  ('D10 Vehículo INACTIVO nunca disponible (15)',       'false', fn_vehiculo_disponible(15, CURRENT_DATE + 80, CURRENT_DATE + 82)::text),
+  ('D14 Mantenimiento FINALIZADO no bloquea (vehículo 1)', 'true', fn_vehiculo_disponible(1, CURRENT_DATE - 79, CURRENT_DATE - 79)::text),
+  ('D11 Alquiler ACTIVO bloquea (vehículo 17)',         'false', fn_vehiculo_disponible(17, CURRENT_DATE, CURRENT_DATE + 1)::text),
+  ('D12 Fechas invertidas -> e_parametro_invalido',     'SR007', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_vehiculo_disponible(4, CURRENT_DATE + 62, CURRENT_DATE + 60)$$)),
+  ('D13 Vehículo inexistente -> e_registro_no_encontrado','SR008', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_vehiculo_disponible(999, CURRENT_DATE + 60, CURRENT_DATE + 62)$$)),
   -- fn_obtener_tarifa_vigente
-  ('T1 Tarifa vigente ECONOMICO hoy = 6',               '6',     fn_obtener_tarifa_vigente(1, '2026-11-05')::text),
-  ('T2 Tarifa histórica ECONOMICO en marzo = 1',        '1',     fn_obtener_tarifa_vigente(1, '2026-03-15')::text),
-  ('T3 Sin tarifa en 2025 -> e_tarifa_no_vigente',      'SR006', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_obtener_tarifa_vigente(1, '2025-12-31')$$)),
+  ('T1 Tarifa vigente ECONOMICO hoy = 6',               '6',     fn_obtener_tarifa_vigente(1, CURRENT_DATE)::text),
+  ('T2 Tarifa histórica ECONOMICO hace 200 días = 1',   '1',     fn_obtener_tarifa_vigente(1, CURRENT_DATE - 200)::text),
+  ('T3 Sin tarifa hace 400 días -> e_tarifa_no_vigente', 'SR006', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_obtener_tarifa_vigente(1, CURRENT_DATE - 400)$$)),
   -- fn_calcular_costo (RN-04)
   ('C1 3 días x 110.000 = 330.000',                     '330000.00',  fn_calcular_costo(6, '2026-09-01', '2026-09-04')::text),
   ('C2 7 días x 230.000 = 1.610.000',                   '1610000.00', fn_calcular_costo(9, '2026-09-20', '2026-09-27')::text),
@@ -45,8 +51,8 @@ WITH casos(caso, esperado, obtenido) AS (VALUES
   -- fn_calcular_cargo_retraso (RN-04: 50 % por día)
   ('R1 Alquiler 3, 2 días tarde x 85.000 = 170.000',    '170000.00', fn_calcular_cargo_retraso(3)::text),
   ('R2 Alquiler 1 devuelto a tiempo = 0',               '0.00',      fn_calcular_cargo_retraso(1)::text),
-  ('R3 Alquiler 9 (SUV) devuelto 10 nov: 2 x 115.000',  '230000.00', fn_calcular_cargo_retraso(9, '2026-11-10 10:00-05')::text),
-  ('R4 Devolución 8 nov 23:30 Bogotá no es retraso',    '0.00',      fn_calcular_cargo_retraso(9, '2026-11-08 23:30-05')::text),
+  ('R3 Alquiler 9 (SUV) devuelto 2 días tarde: 2 x 115.000', '230000.00', fn_calcular_cargo_retraso(9, (CURRENT_DATE + 5 + time '10:00')::timestamptz)::text),
+  ('R4 Devolución el día final a las 23:30 no es retraso', '0.00',  fn_calcular_cargo_retraso(9, (CURRENT_DATE + 3 + time '23:30')::timestamptz)::text),
   ('R5 Alquiler inexistente -> e_registro_no_encontrado','SR008', pg_temp.fn_sqlstate_de($$SELECT sirav.fn_calcular_cargo_retraso(999)$$))
 )
 SELECT caso, esperado, obtenido,
