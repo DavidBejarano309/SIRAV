@@ -1,5 +1,6 @@
 graph SIRAV {
   graph [layout=neato, overlap=false, splines=true, bgcolor="white", outputorder=edgesfirst];
+  graph [labelloc=t, fontname="Helvetica", fontsize=22, label=<<B>SIRAV — Modelo entidad-relación (notación de Chen)</B><BR/><FONT POINT-SIZE="12" COLOR="#55606b">13 entidades · 13 relaciones · esquema revisado 3FN</FONT>>];
   node [fontname="Arial", fontsize=11, style=filled, fillcolor="#edf2e8", color="#526d50"];
   edge [fontname="Arial", fontsize=9, color="#84947c"];
   USUARIO [shape=box, label="USUARIO", fillcolor="#dce7d3"];
