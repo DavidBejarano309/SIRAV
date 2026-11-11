@@ -18,10 +18,23 @@
 --
 -- Se usan IDs explícitos para que las referencias sean legibles; al
 -- final se ajustan las secuencias IDENTITY con setval.
+--
+-- Fechas relativas al día de ejecución (hora de Bogotá): el historial
+-- queda en el pasado, el alquiler activo en curso y las reservas futuras
+-- en el futuro, sin importar cuándo se cargue la base. Se usan dos
+-- funciones temporales: pg_temp.dia(n) = hoy + n días y
+-- pg_temp.momento(n, 'HH:MI') = hoy + n días a esa hora.
 -- =====================================================================
 
 \set ON_ERROR_STOP on
 SET search_path TO sirav, public;
+SET TIME ZONE 'America/Bogota';
+
+CREATE OR REPLACE FUNCTION pg_temp.dia(param_dias INTEGER) RETURNS DATE
+LANGUAGE sql STABLE AS $$ SELECT CURRENT_DATE + param_dias $$;
+
+CREATE OR REPLACE FUNCTION pg_temp.momento(param_dias INTEGER, param_hora TEXT) RETURNS TIMESTAMPTZ
+LANGUAGE sql STABLE AS $$ SELECT (CURRENT_DATE + param_dias + param_hora::time)::timestamptz $$;
 
 BEGIN;
 
@@ -34,26 +47,26 @@ INSERT INTO rol (id_rol, nombre) VALUES
   (3, 'CLIENTE');
 
 INSERT INTO usuario (id_usuario, nombre, apellido, email, password_hash, activo, creado_en) VALUES
-  (1, 'David',    'Bejarano',  'admin@sirav.test',     '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-01 08:00-05'),
-  (2, 'Jose',     'Rodriguez', 'operador1@sirav.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-01 08:05-05'),
-  (3, 'Laura',    'Gómez',     'operador2@sirav.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-01 08:10-05'),
-  (4, 'Ana',      'Pérez',     'ana.perez@correo.test',      '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-10 10:00-05'),
-  (5, 'Carlos',   'Martínez',  'carlos.martinez@correo.test','$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-12 11:30-05'),
-  (6, 'Valentina','Rojas',     'valentina.rojas@correo.test','$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-15 09:15-05'),
-  (7, 'Andrés',   'Castro',    'andres.castro@correo.test',  '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, '2026-08-20 16:45-05'),
-  (8, 'Camila',   'Herrera',   'camila.herrera@correo.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', FALSE,'2026-08-25 14:20-05');
+  (1, 'David',    'Bejarano',  'admin@sirav.test',     '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-100, '08:00')),
+  (2, 'Jose',     'Rodriguez', 'operador1@sirav.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-100, '08:05')),
+  (3, 'Laura',    'Gómez',     'operador2@sirav.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-100, '08:10')),
+  (4, 'Ana',      'Pérez',     'ana.perez@correo.test',      '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-90, '10:00')),
+  (5, 'Carlos',   'Martínez',  'carlos.martinez@correo.test','$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-88, '11:30')),
+  (6, 'Valentina','Rojas',     'valentina.rojas@correo.test','$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-85, '09:15')),
+  (7, 'Andrés',   'Castro',    'andres.castro@correo.test',  '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', TRUE, pg_temp.momento(-80, '16:45')),
+  (8, 'Camila',   'Herrera',   'camila.herrera@correo.test', '$2a$10$5Yd9NGe359lmmNSw/xz2ZOqXdJlR9FJmo6VIpD.ozxxpBDVA3zUHe', FALSE,pg_temp.momento(-75, '14:20'));
 
 -- Especialización superpuesta: el administrador también es operador
 INSERT INTO usuario_rol (id_usuario, id_rol, asignado_en) VALUES
-  (1, 1, '2026-08-01 08:00-05'),
-  (1, 2, '2026-08-01 08:00-05'),
-  (2, 2, '2026-08-01 08:05-05'),
-  (3, 2, '2026-08-01 08:10-05'),
-  (4, 3, '2026-08-10 10:00-05'),
-  (5, 3, '2026-08-12 11:30-05'),
-  (6, 3, '2026-08-15 09:15-05'),
-  (7, 3, '2026-08-20 16:45-05'),
-  (8, 3, '2026-08-25 14:20-05');
+  (1, 1, pg_temp.momento(-100, '08:00')),
+  (1, 2, pg_temp.momento(-100, '08:00')),
+  (2, 2, pg_temp.momento(-100, '08:05')),
+  (3, 2, pg_temp.momento(-100, '08:10')),
+  (4, 3, pg_temp.momento(-90, '10:00')),
+  (5, 3, pg_temp.momento(-88, '11:30')),
+  (6, 3, pg_temp.momento(-85, '09:15')),
+  (7, 3, pg_temp.momento(-80, '16:45')),
+  (8, 3, pg_temp.momento(-75, '14:20'));
 
 -- ---------------------------------------------------------------------
 -- Clientes (1 a 5 con cuenta web; 6 a 12 sin cuenta)
@@ -73,7 +86,7 @@ INSERT INTO cliente (id_cliente, id_usuario, nombres, apellidos, documento, tele
   (12, NULL, 'Ricardo',   'Díaz',      '19999888',   '3156667788', NULL,                          NULL);
 
 -- ---------------------------------------------------------------------
--- Categorías y tarifas (vigencia histórica cerrada + vigente abierta)
+-- Categorías y tarifas (histórica: hace 365 a 181 días; vigente: desde hace 180)
 -- ---------------------------------------------------------------------
 INSERT INTO categoria_vehiculo (id_categoria, nombre, descripcion) VALUES
   (1, 'ECONOMICO', 'Citadinos de bajo consumo, 4 pasajeros'),
@@ -83,16 +96,16 @@ INSERT INTO categoria_vehiculo (id_categoria, nombre, descripcion) VALUES
   (5, 'CAMIONETA', 'Pick-up doble cabina para carga ligera');
 
 INSERT INTO tarifa (id_tarifa, id_categoria, valor_diario, vigente_desde, vigente_hasta) VALUES
-  (1,  1, 100000, '2026-01-01', '2026-06-30'),
-  (2,  2, 130000, '2026-01-01', '2026-06-30'),
-  (3,  3, 160000, '2026-01-01', '2026-06-30'),
-  (4,  4, 210000, '2026-01-01', '2026-06-30'),
-  (5,  5, 260000, '2026-01-01', '2026-06-30'),
-  (6,  1, 110000, '2026-07-01', NULL),
-  (7,  2, 140000, '2026-07-01', NULL),
-  (8,  3, 170000, '2026-07-01', NULL),
-  (9,  4, 230000, '2026-07-01', NULL),
-  (10, 5, 280000, '2026-07-01', NULL);
+  (1,  1, 100000, pg_temp.dia(-365), pg_temp.dia(-181)),
+  (2,  2, 130000, pg_temp.dia(-365), pg_temp.dia(-181)),
+  (3,  3, 160000, pg_temp.dia(-365), pg_temp.dia(-181)),
+  (4,  4, 210000, pg_temp.dia(-365), pg_temp.dia(-181)),
+  (5,  5, 260000, pg_temp.dia(-365), pg_temp.dia(-181)),
+  (6,  1, 110000, pg_temp.dia(-180), NULL),
+  (7,  2, 140000, pg_temp.dia(-180), NULL),
+  (8,  3, 170000, pg_temp.dia(-180), NULL),
+  (9,  4, 230000, pg_temp.dia(-180), NULL),
+  (10, 5, 280000, pg_temp.dia(-180), NULL);
 
 -- ---------------------------------------------------------------------
 -- Vehículos (estado coherente con el historial de abajo)
@@ -133,9 +146,9 @@ INSERT INTO vehiculo (id_vehiculo, id_categoria, placa, marca, modelo, anio, col
 -- Mantenimientos
 -- ---------------------------------------------------------------------
 INSERT INTO mantenimiento (id_mantenimiento, id_vehiculo, fecha_inicio, fecha_fin, descripcion, estado) VALUES
-  (1, 1,  '2026-08-20', '2026-08-22', 'Cambio de aceite y filtros (15.000 km)',      'FINALIZADO'),
-  (2, 5,  '2026-11-04', '2026-11-09', 'Revisión de frenos y cambio de pastillas',    'EN_CURSO'),
-  (3, 18, '2026-11-25', '2026-11-27', 'Alineación, balanceo y rotación de llantas',  'PROGRAMADO');
+  (1, 1,  pg_temp.dia(-80), pg_temp.dia(-78), 'Cambio de aceite y filtros (15.000 km)',      'FINALIZADO'),
+  (2, 5,  pg_temp.dia(-1),  pg_temp.dia(4), 'Revisión de frenos y cambio de pastillas',    'EN_CURSO'),
+  (3, 18, pg_temp.dia(14),  pg_temp.dia(16), 'Alineación, balanceo y rotación de llantas',  'PROGRAMADO');
 
 -- ---------------------------------------------------------------------
 -- Reservas
@@ -144,58 +157,58 @@ INSERT INTO mantenimiento (id_mantenimiento, id_vehiculo, fecha_inicio, fecha_fi
 -- ---------------------------------------------------------------------
 INSERT INTO reserva (id_reserva, id_cliente, id_vehiculo, id_tarifa, fecha_inicio, fecha_fin, fecha_solicitud, estado) VALUES
   -- Historial cerrado
-  (1,  1, 1,  6,  '2026-09-01', '2026-09-04', '2026-08-28 10:12-05', 'CERRADA'),
-  (2,  2, 6,  7,  '2026-09-05', '2026-09-10', '2026-08-30 15:40-05', 'CERRADA'),
-  (3,  3, 11, 8,  '2026-09-12', '2026-09-15', '2026-09-08 09:05-05', 'CERRADA'),
-  (4,  4, 16, 9,  '2026-09-20', '2026-09-27', '2026-09-14 18:22-05', 'CERRADA'),
-  (5,  6, 2,  6,  '2026-10-01', '2026-10-03', '2026-09-29 11:00-05', 'CERRADA'),
-  (6,  7, 21, 10, '2026-10-05', '2026-10-10', '2026-09-30 08:45-05', 'CERRADA'),
-  (7,  5, 7,  7,  '2026-10-12', '2026-10-14', '2026-10-09 17:30-05', 'CERRADA'),
-  (8,  8, 12, 8,  '2026-10-15', '2026-10-20', '2026-10-10 12:10-05', 'CERRADA'),
+  (1,  1, 1,  6,  pg_temp.dia(-70), pg_temp.dia(-67), pg_temp.momento(-74, '10:12'), 'CERRADA'),
+  (2,  2, 6,  7,  pg_temp.dia(-66), pg_temp.dia(-61), pg_temp.momento(-72, '15:40'), 'CERRADA'),
+  (3,  3, 11, 8,  pg_temp.dia(-59), pg_temp.dia(-56), pg_temp.momento(-63, '09:05'), 'CERRADA'),
+  (4,  4, 16, 9,  pg_temp.dia(-51), pg_temp.dia(-44), pg_temp.momento(-57, '18:22'), 'CERRADA'),
+  (5,  6, 2,  6,  pg_temp.dia(-40), pg_temp.dia(-38), pg_temp.momento(-42, '11:00'), 'CERRADA'),
+  (6,  7, 21, 10, pg_temp.dia(-36), pg_temp.dia(-31), pg_temp.momento(-41, '08:45'), 'CERRADA'),
+  (7,  5, 7,  7,  pg_temp.dia(-29), pg_temp.dia(-27), pg_temp.momento(-32, '17:30'), 'CERRADA'),
+  (8,  8, 12, 8,  pg_temp.dia(-26), pg_temp.dia(-21), pg_temp.momento(-31, '12:10'), 'CERRADA'),
   -- Cancelada (no bloquea el vehículo)
-  (9,  9, 3,  6,  '2026-10-22', '2026-10-24', '2026-10-18 14:00-05', 'CANCELADA'),
+  (9,  9, 3,  6,  pg_temp.dia(-19), pg_temp.dia(-17), pg_temp.momento(-23, '14:00'), 'CANCELADA'),
   -- En curso
-  (10, 1, 17, 9,  '2026-11-03', '2026-11-08', '2026-10-30 09:30-05', 'ACTIVA'),
+  (10, 1, 17, 9,  pg_temp.dia(-2), pg_temp.dia(3), pg_temp.momento(-6, '09:30'), 'ACTIVA'),
   -- Futuras
-  (11, 2, 8,  7,  '2026-11-10', '2026-11-12', '2026-11-02 16:15-05', 'CONFIRMADA'),
-  (12, 10,13, 8,  '2026-11-20', '2026-11-25', '2026-11-04 19:50-05', 'SOLICITADA'),
-  (13, 3, 22, 10, '2026-12-01', '2026-12-05', '2026-11-05 08:20-05', 'CONFIRMADA');
+  (11, 2, 8,  7,  pg_temp.dia(2), pg_temp.dia(4), pg_temp.momento(-3, '16:15'), 'CONFIRMADA'),
+  (12, 10,13, 8,  pg_temp.dia(9), pg_temp.dia(14), pg_temp.momento(-1, '19:50'), 'SOLICITADA'),
+  (13, 3, 22, 10, pg_temp.dia(20), pg_temp.dia(24), pg_temp.momento(0, '08:20'), 'CONFIRMADA');
 
 -- ---------------------------------------------------------------------
 -- Alquileres (1:1 con la reserva)
 -- ---------------------------------------------------------------------
 INSERT INTO alquiler (id_alquiler, id_reserva, fecha_entrega, fecha_devolucion, km_salida, km_entrada,
                       combustible_salida, combustible_entrada, estado) VALUES
-  (1,  1,  '2026-09-01 09:00-05', '2026-09-04 17:00-05', 15000, 15420, 100, 95,  'CERRADO'),
-  (2,  2,  '2026-09-05 08:30-05', '2026-09-10 18:10-05', 12100, 12880, 100, 100, 'CERRADO'),
-  (3,  3,  '2026-09-12 10:00-05', '2026-09-17 12:30-05', 18300, 18900, 100, 90,  'CERRADO'),  -- 2 días tarde
-  (4,  4,  '2026-09-20 07:45-05', '2026-09-27 19:00-05', 20800, 21950, 100, 40,  'CERRADO'),  -- poco combustible
-  (5,  5,  '2026-10-01 09:15-05', '2026-10-03 16:40-05', 28000, 28310, 100, 85,  'CERRADO'),
-  (6,  6,  '2026-10-05 08:00-05', '2026-10-10 17:20-05', 25900, 26750, 100, 100, 'CERRADO'),  -- daño
-  (7,  7,  '2026-10-12 11:00-05', '2026-10-14 15:30-05', 23900, 24150, 100, 90,  'CERRADO'),
-  (8,  8,  '2026-10-15 09:00-05', '2026-10-20 18:00-05', 26900, 27560, 100, 100, 'CERRADO'),
-  (9,  10, '2026-11-03 08:40-05', NULL,                  22000, NULL,  100, NULL,'ACTIVO');
+  (1,  1,  pg_temp.momento(-70, '09:00'), pg_temp.momento(-67, '17:00'), 15000, 15420, 100, 95,  'CERRADO'),
+  (2,  2,  pg_temp.momento(-66, '08:30'), pg_temp.momento(-61, '18:10'), 12100, 12880, 100, 100, 'CERRADO'),
+  (3,  3,  pg_temp.momento(-59, '10:00'), pg_temp.momento(-54, '12:30'), 18300, 18900, 100, 90,  'CERRADO'),  -- 2 días tarde
+  (4,  4,  pg_temp.momento(-51, '07:45'), pg_temp.momento(-44, '19:00'), 20800, 21950, 100, 40,  'CERRADO'),  -- poco combustible
+  (5,  5,  pg_temp.momento(-40, '09:15'), pg_temp.momento(-38, '16:40'), 28000, 28310, 100, 85,  'CERRADO'),
+  (6,  6,  pg_temp.momento(-36, '08:00'), pg_temp.momento(-31, '17:20'), 25900, 26750, 100, 100, 'CERRADO'),  -- daño
+  (7,  7,  pg_temp.momento(-29, '11:00'), pg_temp.momento(-27, '15:30'), 23900, 24150, 100, 90,  'CERRADO'),
+  (8,  8,  pg_temp.momento(-26, '09:00'), pg_temp.momento(-21, '18:00'), 26900, 27560, 100, 100, 'CERRADO'),
+  (9,  10, pg_temp.momento(-2, '08:40'),  NULL,                          22000, NULL,  100, NULL, 'ACTIVO');
 
 -- ---------------------------------------------------------------------
 -- Cargos adicionales
 -- ---------------------------------------------------------------------
 INSERT INTO cargo_adicional (id_cargo, id_alquiler, concepto, descripcion, monto, fecha_registro) VALUES
-  (1, 3, 'RETRASO',     'Devolución 2 días tarde: 2 x 50 % de 170.000', 170000, '2026-09-17 12:45-05'),
-  (2, 4, 'COMBUSTIBLE', 'Entregado con 40 % de tanque',                  60000, '2026-09-27 19:15-05'),
-  (3, 6, 'DANO',        'Rayón en puerta trasera izquierda',            250000, '2026-10-10 17:40-05');
+  (1, 3, 'RETRASO',     'Devolución 2 días tarde: 2 x 50 % de 170.000', 170000, pg_temp.momento(-54, '12:45')),
+  (2, 4, 'COMBUSTIBLE', 'Entregado con 40 % de tanque',                  60000, pg_temp.momento(-44, '19:15')),
+  (3, 6, 'DANO',        'Rayón en puerta trasera izquierda',            250000, pg_temp.momento(-31, '17:40'));
 
 -- ---------------------------------------------------------------------
 -- Pagos de demostración (alquiler + cargos)
 -- ---------------------------------------------------------------------
 INSERT INTO pago (id_pago, id_alquiler, fecha_pago, monto, tipo, estado) VALUES
-  (1, 1, '2026-09-04 17:10-05',  330000, 'TARJETA',       'APROBADO'),  -- 3 x 110.000
-  (2, 2, '2026-09-10 18:20-05',  700000, 'TRANSFERENCIA', 'APROBADO'),  -- 5 x 140.000
-  (3, 3, '2026-09-17 12:50-05',  680000, 'TARJETA',       'APROBADO'),  -- 3 x 170.000 + 170.000
-  (4, 4, '2026-09-27 19:20-05', 1670000, 'TARJETA',       'APROBADO'),  -- 7 x 230.000 + 60.000
-  (5, 5, '2026-10-03 16:50-05',  220000, 'EFECTIVO',      'APROBADO'),  -- 2 x 110.000
-  (6, 6, '2026-10-10 17:45-05', 1650000, 'TRANSFERENCIA', 'APROBADO'),  -- 5 x 280.000 + 250.000
-  (7, 7, '2026-10-14 15:40-05',  280000, 'PRUEBA',        'APROBADO'),  -- 2 x 140.000
-  (8, 8, '2026-10-20 18:10-05',  850000, 'PRUEBA',        'APROBADO');  -- 5 x 170.000
+  (1, 1, pg_temp.momento(-67, '17:10'),  330000, 'TARJETA',       'APROBADO'),  -- 3 x 110.000
+  (2, 2, pg_temp.momento(-61, '18:20'),  700000, 'TRANSFERENCIA', 'APROBADO'),  -- 5 x 140.000
+  (3, 3, pg_temp.momento(-54, '12:50'),  680000, 'TARJETA',       'APROBADO'),  -- 3 x 170.000 + 170.000
+  (4, 4, pg_temp.momento(-44, '19:20'), 1670000, 'TARJETA',       'APROBADO'),  -- 7 x 230.000 + 60.000
+  (5, 5, pg_temp.momento(-38, '16:50'),  220000, 'EFECTIVO',      'APROBADO'),  -- 2 x 110.000
+  (6, 6, pg_temp.momento(-31, '17:45'), 1650000, 'TRANSFERENCIA', 'APROBADO'),  -- 5 x 280.000 + 250.000
+  (7, 7, pg_temp.momento(-27, '15:40'),  280000, 'PRUEBA',        'APROBADO'),  -- 2 x 140.000
+  (8, 8, pg_temp.momento(-21, '18:10'),  850000, 'PRUEBA',        'APROBADO');  -- 5 x 170.000
 
 -- ---------------------------------------------------------------------
 -- Auditoría inicial del historial (los triggers de 05_triggers.sql
