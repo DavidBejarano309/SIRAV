@@ -1,0 +1,71 @@
+SIRAV-25 | Evidencia de MongoDB (colecciones, usuarios, datos, CRUD y permisos)
+Fecha: 2026-11-11T18:17:33-05:00 | MongoDB 8.3.7 | mongosh 2.5.8
+Servidor con autorización activada; datos de ejemplo con fechas relativas al día de carga
+
+>> 01_colecciones.js
+Colecciones: bitacora_operaciones, inspecciones_vehiculo
+Índices de inspecciones_vehiculo: _id_, ux_inspeccion_alquiler_tipo, ix_inspeccion_vehiculo_fecha, ix_inspeccion_severidad_fecha, ix_inspeccion_tipo_categoria
+Índices de bitacora_operaciones: _id_, ix_bitacora_fecha_count, ix_bitacora_tipo_fecha
+Usuarios: sirav_app_mongo, sirav_reportes_mongo
+>> 03_datos.js
+Inspecciones: 17 (entregas 9, devoluciones 8)
+Buckets de bitácora: 30 con 72 eventos
+
+===== Pruebas =====
+OK    | V1 Tipo de inspección inválido  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V2 Sin id_alquiler  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V3 Combustible de 150 %  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V4 Severidad de daño inválida  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V5 Zona de daño fuera del catálogo  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V6 Placa con formato inválido  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V7 Polymorphic: DEVOLUCION sin resumen  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V8 Polymorphic: ENTREGA con resumen  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V9 Evidencia que no es imagen (binarios no van en la base)  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | V10 Campo no previsto en el esquema  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | C1 Devolución sin entrega -> e_entrega_no_registrada  (esperado: "e_entrega_no_registrada", obtenido: "e_entrega_no_registrada")
+OK    | C2 Registrar entrega  (esperado: "VIGENTE", obtenido: "VIGENTE")
+OK    | C3 Segunda entrega vigente del mismo alquiler -> índice único (11000)  (esperado: "codigo 11000", obtenido: "codigo 11000")
+OK    | C4 Devolución con km menor que la entrega -> e_parametro_invalido  (esperado: "e_parametro_invalido", obtenido: "e_parametro_invalido")
+OK    | C5 Computed: resumen calculado al guardar la devolución  (esperado: {"total_danos":2,"danos_nuevos":1,"severidad_maxima":"MEDIA","km_recorridos":550,"combustible_consumido":30,"monto_danos_estimado":180000}, obtenido: {"total_danos":2,"danos_nuevos":1,"severidad_maxima":"MEDIA","km_recorridos":550,"combustible_consumido":30,"monto_danos_estimado":180000})
+OK    | C6 Daño en zona ya vista en la entrega queda como no nuevo  (esperado: [false,true], obtenido: [false,true])
+OK    | C7 Consultar inspecciones del alquiler  (esperado: ["ENTREGA","DEVOLUCION"], obtenido: ["ENTREGA","DEVOLUCION"])
+OK    | C8 Historial del vehículo (más reciente primero)  (esperado: ["DEVOLUCION","ENTREGA"], obtenido: ["DEVOLUCION","ENTREGA"])
+OK    | C9 Corregir devolución recalcula el resumen  (esperado: [3,2,"ALTA",500000], obtenido: [3,2,"ALTA",500000])
+OK    | C10 Corregir la entrega actualiza el resumen de la devolución  (esperado: 20, obtenido: 20)
+OK    | C11 Corregir un campo no permitido -> e_parametro_invalido  (esperado: "e_parametro_invalido", obtenido: "e_parametro_invalido")
+OK    | C12 Anular entrega con devolución vigente -> e_anulacion_invalida  (esperado: "e_anulacion_invalida", obtenido: "e_anulacion_invalida")
+OK    | C13 Anular devolución (borrado lógico)  (esperado: ["ANULADA","Kilometraje mal digitado"], obtenido: ["ANULADA","Kilometraje mal digitado"])
+OK    | C14 La anulada no aparece en la consulta normal pero sí en el historial completo  (esperado: [1,2], obtenido: [1,2])
+OK    | C15 Tras anular se puede registrar la devolución corregida  (esperado: "SIN_ERROR", obtenido: "SIN_ERROR")
+OK    | C16 Corregir una inspección anulada -> e_inspeccion_anulada  (esperado: "e_inspeccion_anulada", obtenido: "e_inspeccion_anulada")
+OK    | B1 205 eventos del mismo día quedan en 2 buckets (200 + 5)  (esperado: [200,5], obtenido: [200,5])
+OK    | B2 El primer y último evento quedan registrados en el bucket  (esperado: true, obtenido: true)
+OK    | B3 Un bucket no acepta más de 200 eventos (validación)  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | B4 Tipo de evento fuera del catálogo  (esperado: "codigo 121", obtenido: "codigo 121")
+OK    | B5 Las operaciones del CRUD quedaron en la bitácora  (esperado: ["INSPECCION_ANULADA","INSPECCION_CORREGIDA","INSPECCION_REGISTRADA"], obtenido: ["INSPECCION_ANULADA","INSPECCION_CORREGIDA","INSPECCION_REGISTRADA"])
+OK    | Q1 $elemMatch: daños ALTA en los últimos 60 días -> alquiler 6  (esperado: [6], obtenido: [6])
+OK    | Q2 La consulta Q1 usa el índice ix_inspeccion_severidad_fecha  (esperado: true, obtenido: true)
+OK    | Q3 Promedio por categoría posible sin consultar PostgreSQL (5 categorías)  (esperado: 5, obtenido: 5)
+OK    | Q4 Datos enlazados: alquileres 1 a 9 con entrega y 1 a 8 con devolución  (esperado: [9,8], obtenido: [9,8])
+
+Resultado: 35 OK, 0 FALLO
+
+OK    | S1 App consulta inspecciones  (esperado: "SIN_ERROR", obtenido: "SIN_ERROR")
+OK    | S2 App registra un evento en la bitácora  (esperado: "SIN_ERROR", obtenido: "SIN_ERROR")
+OK    | S3 App actualiza (corrige) una inspección  (esperado: "SIN_ERROR", obtenido: "SIN_ERROR")
+OK    | S4 App NO puede borrar inspecciones  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | S5 App NO puede eliminar la colección  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | S6 App NO puede crear colecciones nuevas  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | S7 App NO puede cambiar el validador  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | S8 App NO puede leer otras bases  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | S9 App NO puede crear usuarios  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | R1 Reportes consulta y agrega  (esperado: "SIN_ERROR", obtenido: "SIN_ERROR")
+OK    | R2 Reportes NO puede insertar  (esperado: "codigo 13", obtenido: "codigo 13")
+OK    | R3 Reportes NO puede actualizar  (esperado: "codigo 13", obtenido: "codigo 13")
+
+Resultado: 12 OK, 0 FALLO
+
+Todas las pruebas pasaron.
+
+== Acceso sin credenciales ==
+Rechazado, código 13 (Unauthorized)
