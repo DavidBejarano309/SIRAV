@@ -29,6 +29,7 @@ Supuestos que la propuesta no fijaba y que se decidieron al construir la base de
 ### Fechas y cobro
 
 - Todas las fechas y horas se interpretan en la zona horaria de Bogotá (America/Bogota).
+- Los datos de prueba usan fechas relativas al día en que se cargan, para que el historial quede en el pasado y las reservas futuras en el futuro (`02_insercion.sql`).
 - Una reserva ocupa días completos: el vehículo queda bloqueado desde la fecha de inicio hasta la fecha de fin, ambas incluidas (`01_creacion.sql`, RN-01).
 - No se aceptan reservas que empiecen en una fecha pasada (`sp_crear_reserva`).
 - El costo base es el número de días (fecha de fin menos fecha de inicio) por el valor diario de la tarifa, con un mínimo de un día (`fn_calcular_costo`, RN-04).
@@ -41,7 +42,7 @@ Supuestos que la propuesta no fijaba y que se decidieron al construir la base de
 ### Disponibilidad de la flota
 
 - Solo bloquean un vehículo las reservas en estado SOLICITADA, CONFIRMADA o ACTIVA; las CERRADAS y CANCELADAS no (RN-01).
-- Un mantenimiento PROGRAMADO o EN_CURSO bloquea las reservas en esas fechas; uno CANCELADO no (RN-02, `trg_validar_mantenimiento`).
+- Un mantenimiento PROGRAMADO o EN_CURSO bloquea las reservas en esas fechas; uno FINALIZADO o CANCELADO no (RN-02, `trg_validar_mantenimiento`, `fn_vehiculo_disponible`).
 - Un vehículo INACTIVO no se puede reservar. Ese estado lo fija el administrador y los triggers no lo cambian.
 - El estado del vehículo se calcula a partir de sus reservas y mantenimientos, con esta prioridad: INACTIVO, ENTREGADO, MANTENIMIENTO, RESERVADO y DISPONIBLE (`trg_actualizar_estado_vehiculo`).
 
