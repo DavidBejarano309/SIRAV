@@ -4,7 +4,7 @@ Historias de Jira: **SIRAV-15** (VM con Ubuntu Server) y **SIRAV-35** (instalaci
 
 > **Estado de verificación.** Los pasos 4 a 8 se ejecutan automáticamente en un Ubuntu 24.04 limpio en cada cambio, con el workflow [`despliegue.yml`](../../.github/workflows/despliegue.yml): construcción, arranque, verificación de punta a punta, respaldo, restauración y reinicio. El resultado está en la sección 9. La creación de la VM (pasos 1 a 3) la hace el equipo en su computador.
 
-![Arquitectura del despliegue](../diagramas/SIRAV_arquitectura.png)
+![Arquitectura del despliegue](../diagramas/SIRAV_arquitectura_compacta.png)
 
 ## 1. Crear la máquina virtual
 
