@@ -1,5 +1,7 @@
 # Arquitectura simplificada
 
+> Diagramas de la entrega final: [`diagramas/`](diagramas/). Despliegue real en tres VM: [`fase-2/guia-instalacion.md`](fase-2/guia-instalacion.md).
+
 React consume una API Spring Boot. PostgreSQL conserva las 13 entidades y ejecuta los procedimientos, funciones y triggers. MongoDB conserva inspecciones con listas de daños/evidencias y la bitácora de estados, accesos y administración.
 
 ```mermaid

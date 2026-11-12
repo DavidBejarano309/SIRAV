@@ -1,0 +1,77 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial"
+    fontSize: "13px"
+    sectionBkgColor: "#f4f6f8"
+    altSectionBkgColor: "#ffffff"
+    taskBkgColor: "#c9d6e3"
+    taskBorderColor: "#4a6584"
+    taskTextColor: "#14324f"
+    taskTextDarkColor: "#14324f"
+    activeTaskBkgColor: "#f6d58e"
+    activeTaskBorderColor: "#b7862b"
+    doneTaskBkgColor: "#9fd3a6"
+    doneTaskBorderColor: "#3d8a4a"
+    critBkgColor: "#e8a0a0"
+    critBorderColor: "#a33b3b"
+    todayLineColor: "#a33b3b"
+    gridColor: "#d5dbe1"
+  gantt:
+    barHeight: 22
+    barGap: 5
+    topPadding: 60
+    leftPadding: 330
+    sectionFontSize: 13
+    fontSize: 12
+    numberSectionStyles: 2
+---
+gantt
+    title SIRAV - Cronograma de 4 sprints (plan de la propuesta y estado al 11 nov 2026)
+    dateFormat YYYY-MM-DD
+    axisFormat %d %b
+    tickInterval 2day
+    todayMarker off
+
+    section Sprint 1 - Modelado y gestión
+    SIRAV-8 Jira, tablero y repositorio (David)          :done,   s8,  2026-10-18, 1d
+    SIRAV-9 Supuestos, requerimientos y riesgos (David)  :done,   s9,  2026-10-18, 2d
+    SIRAV-10 Gantt, RACI y metodología (David)           :done,   s10, 2026-10-19, 2d
+    SIRAV-14 Selección de SO y RDBMS (David)             :done,   s14, 2026-10-20, 2d
+    SIRAV-11 E-R Chen y extendido (Jose David)           :done,   s11, 2026-10-18, 3d
+    SIRAV-12 Crow's Foot lógico y relacional (Jose David):done,   s12, after s11, 2d
+    SIRAV-13 Diccionario de datos y 3FN (Jose David)     :done,   s13, after s12, 2d
+    SIRAV-15 VM Ubuntu Server (Jose David)               :done,   s15, 2026-10-21, 4d
+    H1 Modelado cerrado y entorno listo                  :milestone, h1, 2026-10-24, 0d
+
+    section Sprint 2 - PostgreSQL
+    SIRAV-16 Scripts DDL (David)                         :done,   s16, 2026-10-25, 1d
+    SIRAV-17 Datos de prueba (David)                     :done,   s17, after s16, 1d
+    SIRAV-19 Funciones fn_ (David)                       :done,   s19, after s17, 1d
+    SIRAV-20 Procedimientos de reservas (David)          :done,   s20, after s19, 2d
+    SIRAV-21 Triggers (David)                            :done,   s21, after s20, 2d
+    SIRAV-18 Exclusión RN-01 y concurrencia (Jose David) :done,   s18, 2026-10-26, 2d
+    SIRAV-22 Reportes SQL R1 a R6 (Jose David)           :done,   s22, 2026-10-28, 3d
+    SIRAV-23 Modelo documental MongoDB (David)           :done,   s23, 2026-10-29, 2d
+    H2 Base relacional probada y Fase 1 completa         :milestone, h2, 2026-10-31, 0d
+
+    section Sprint 3 - MongoDB y aplicación
+    SIRAV-24 Procedimientos de alquiler (David)          :done,   s24, 2026-11-01, 1d
+    SIRAV-25 Colecciones MongoDB y CRUD (David)          :done,   s25, 2026-11-01, 2d
+    SIRAV-26 Consulta y agregaciones MongoDB (Jose David):done,   s26, after s25, 2d
+    SIRAV-27 Spring Boot, conexiones y login (David)     :done,   s27, 2026-11-02, 2d
+    SIRAV-28 Catálogo y disponibilidad (David)           :done,   s28, after s27, 1d
+    SIRAV-29 Flujo de reservas en la app (David)         :done,   s29, after s28, 2d
+    SIRAV-30 Entrega y devolución en la app (David)      :done,   s30, after s28, 2d
+    H3 Versión web integrada                             :milestone, h3, 2026-11-07, 0d
+
+    section Sprint 4 - Pruebas y entrega
+    SIRAV-32 Roles y privilegios (David)                 :done,   s32, 2026-11-08, 1d
+    SIRAV-31 Mantenimiento y reportes en la app (Jose David):done,   s31, 2026-11-08, 2d
+    SIRAV-33 Pruebas de concurrencia (Jose David)        :done,   s33, 2026-11-09, 1d
+    SIRAV-34 Pruebas end-to-end (David)                  :done,   s34, 2026-11-10, 2d
+    SIRAV-35 Guía de la VM y respaldos (David)           :active, s35, 2026-11-09, 2d
+    SIRAV-36 Informe ejecutivo (David)                   :done,   s36, 2026-11-11, 3d
+    SIRAV-37 Video demostrativo (Jose David)             :crit,   s37, 2026-11-12, 3d
+    H4 Prototipo verificable y entrega final             :milestone, h4, 2026-11-14, 0d

@@ -1,0 +1,117 @@
+graph EER {
+  graph [layout=dot, rankdir=TB, splines=true, nodesep=0.35, ranksep=0.55, pad=0.4, fontname="Helvetica", fontsize=20, labelloc=t,
+         label=<<B>SIRAV — Modelo entidad-relación extendido (EER)</B><BR/><FONT POINT-SIZE="11" COLOR="#55606b">13 entidades · especialización de USUARIO y de CLIENTE · atributos derivados y compuestos · esquema revisado 3FN</FONT>>];
+  node [fontname="Helvetica", fontsize=11, style=filled, color="#2f5d7c", fillcolor="#e3edf5"];
+  edge [color="#5d7286", fontname="Helvetica", fontsize=10, fontcolor="#1f3a5f"];
+
+  // ---------- Entidades ----------
+  USUARIO [shape=box, penwidth=1.6, label="USUARIO"];
+  ROL [shape=box, penwidth=1.6, label="ROL"];
+  CLIENTE [shape=box, penwidth=1.6, label="CLIENTE"];
+  CATEGORIA [shape=box, penwidth=1.6, label="CATEGORIA_VEHICULO"];
+  VEHICULO [shape=box, penwidth=1.6, label="VEHICULO"];
+  TARIFA [shape=box, penwidth=1.6, label="TARIFA"];
+  MANT [shape=box, penwidth=1.6, label="MANTENIMIENTO"];
+  RESERVA [shape=box, penwidth=1.6, label="RESERVA"];
+  AUDIT [shape=box, penwidth=1.6, label="AUDITORIA_RESERVA"];
+  ALQUILER [shape=box, penwidth=1.6, label="ALQUILER"];
+  PAGO [shape=box, penwidth=1.6, label="PAGO"];
+  CARGO [shape=box, penwidth=1.6, label="CARGO_ADICIONAL"];
+  // Entidad asociativa N:M
+  USUARIO_ROL [shape=box, peripheries=2, fillcolor="#f3f6f9", label="USUARIO_ROL\n(entidad asociativa)"];
+
+  // ---------- Subclases ----------
+  node [fillcolor="#efe7f6", color="#6c4a8a"];
+  P_ADMIN [shape=box, label="PERFIL_ADMINISTRADOR"];
+  P_OPER [shape=box, label="PERFIL_OPERADOR"];
+  P_CLI [shape=box, label="PERFIL_CLIENTE"];
+  C_CUENTA [shape=box, label="CLIENTE_CON_CUENTA\nidentidad en USUARIO"];
+  C_MOSTRADOR [shape=box, label="CLIENTE_MOSTRADOR\nnombres, apellidos, email propios"];
+  ISA_U [shape=circle, width=0.45, fixedsize=true, label="o", fontsize=14, fillcolor="white"];
+  ISA_C [shape=circle, width=0.45, fixedsize=true, label="d", fontsize=14, fillcolor="white"];
+
+  // ---------- Relaciones ----------
+  node [shape=diamond, fillcolor="#fff1d6", color="#b07a1e", fontsize=10];
+  r_perfil [label="tiene perfil"];
+  r_clasifica [label="clasifica"];
+  r_define [label="define"];
+  r_solicita [label="solicita"];
+  r_reservado [label="se reserva"];
+  r_aplica [label="se aplica"];
+  r_requiere [label="requiere"];
+  r_origina [label="origina"];
+  r_registra [label="registra"];
+  r_realiza [label="realiza"];
+  r_recibe [label="recibe"];
+  r_genera [label="genera"];
+
+  // ---------- Atributos especiales ----------
+  node [shape=ellipse, fillcolor="#fbfcfd", color="#7a8b9c", fontsize=10];
+  a_u_id [label=<<U>id_usuario</U>>];
+  a_u_email [label="email (único)"];
+  a_c_id [label=<<U>id_cliente</U>>];
+  a_c_doc [label="documento (único)"];
+  a_v_id [label=<<U>id_vehiculo</U>>];
+  a_v_placa [label="placa (única)"];
+  a_v_disp [label="disponible(período)", style="filled,dashed"];
+  a_r_id [label=<<U>id_reserva</U>>];
+  a_r_periodo [label="periodo [inicio, fin)"];
+  a_r_ini [label="fecha_inicio"];
+  a_r_fin [label="fecha_fin"];
+  a_r_costo [label="costo", style="filled,dashed"];
+  a_r_estado [label="estado"];
+  a_t_vig [label="vigencia [desde, hasta)"];
+  a_a_id [label=<<U>id_alquiler</U>>];
+  a_a_retraso [label="cargo_retraso", style="filled,dashed"];
+  a_m_periodo [label="periodo [inicio, fin)"];
+
+  // Especialización de USUARIO (superpuesta, parcial) a partir de USUARIO_ROL
+  USUARIO -- ISA_U [penwidth=1.2];
+  ISA_U -- P_ADMIN; ISA_U -- P_OPER; ISA_U -- P_CLI;
+  // Especialización de CLIENTE (disyunta, total) según id_usuario
+  CLIENTE -- ISA_C [penwidth=1.4, color="#6c4a8a:white:#6c4a8a"];
+  ISA_C -- C_CUENTA [label="id_usuario\nno nulo"]; ISA_C -- C_MOSTRADOR [label="id_usuario\nnulo"];
+
+  // N:M usuario-rol
+  USUARIO -- USUARIO_ROL [label="0..N"]; USUARIO_ROL -- ROL [label="1"];
+  C_CUENTA -- r_perfil [label="1"]; r_perfil -- USUARIO [label="0..1"];
+
+  CATEGORIA -- r_clasifica [label="1"]; r_clasifica -- VEHICULO [label="0..N"];
+  CATEGORIA -- r_define [label="1"]; r_define -- TARIFA [label="0..N"];
+  CLIENTE -- r_solicita [label="1"]; r_solicita -- RESERVA [label="0..N"];
+  VEHICULO -- r_reservado [label="1"]; r_reservado -- RESERVA [label="0..N"];
+  TARIFA -- r_aplica [label="1"]; r_aplica -- RESERVA [label="0..N"];
+  VEHICULO -- r_requiere [label="1"]; r_requiere -- MANT [label="0..N"];
+  RESERVA -- r_origina [label="1"]; r_origina -- ALQUILER [label="0..1"];
+  RESERVA -- r_registra [label="1"]; r_registra -- AUDIT [label="1..N", penwidth=2.2];
+  USUARIO -- r_realiza [label="0..1"]; r_realiza -- AUDIT [label="0..N"];
+  ALQUILER -- r_recibe [label="1"]; r_recibe -- PAGO [label="0..N"];
+  ALQUILER -- r_genera [label="1"]; r_genera -- CARGO [label="0..N"];
+
+  USUARIO -- a_u_id; USUARIO -- a_u_email;
+  CLIENTE -- a_c_id; CLIENTE -- a_c_doc;
+  VEHICULO -- a_v_id; VEHICULO -- a_v_placa; VEHICULO -- a_v_disp [style=dashed];
+  RESERVA -- a_r_id; RESERVA -- a_r_periodo; a_r_periodo -- a_r_ini; a_r_periodo -- a_r_fin;
+  RESERVA -- a_r_costo [style=dashed]; RESERVA -- a_r_estado;
+  TARIFA -- a_t_vig; MANT -- a_m_periodo;
+  ALQUILER -- a_a_id; ALQUILER -- a_a_retraso [style=dashed];
+
+  // MongoDB (fuera del modelo relacional)
+  subgraph cluster_mongo {
+    label=<<B>MongoDB · sirav_3fn</B> (sin llaves foráneas entre motores)>; fontsize=11; style="dashed,rounded"; color="#3c8a6e"; fontcolor="#2b6b54";
+    node [shape=box, style="filled,rounded", fillcolor="#e5f3ec", color="#3c8a6e"];
+    INSP [label="inspecciones_vehiculo\nalquilerId · tipo ENTREGA|DEVOLUCION\ndanos[] (multivaluado) · evidencias[]\nversion · historial[] · anulada"];
+    BIT [label="bitacora_operaciones\naccion · actor · reservaId · fecha"];
+  }
+  ALQUILER -- INSP [style=dotted, color="#3c8a6e", label="referencia lógica\nvía evento_outbox"];
+  AUDIT -- BIT [style=dotted, color="#3c8a6e"];
+
+  // Leyenda
+  leyenda [shape=plaintext, style="", fillcolor=white, label=<<TABLE BORDER="1" COLOR="#c9d3dd" CELLBORDER="0" CELLPADDING="3">
+    <TR><TD ALIGN="LEFT"><B>Convenciones EER</B></TD></TR>
+    <TR><TD ALIGN="LEFT">Rectángulo: entidad · doble rectángulo: entidad asociativa · rombo: relación</TD></TR>
+    <TR><TD ALIGN="LEFT">Óvalo subrayado: llave · óvalo discontinuo: atributo derivado (función fn_) · óvalo con hijos: compuesto</TD></TR>
+    <TR><TD ALIGN="LEFT">Círculo <B>o</B>: especialización superpuesta y parcial (un usuario puede tener varios perfiles)</TD></TR>
+    <TR><TD ALIGN="LEFT">Círculo <B>d</B> con línea doble: especialización disyunta y total (todo cliente tiene o no tiene cuenta)</TD></TR>
+    <TR><TD ALIGN="LEFT">Atributos completos de cada entidad: ver modelo Chen y diccionario de datos</TD></TR></TABLE>>];
+}

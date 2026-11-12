@@ -1,0 +1,69 @@
+digraph MONGO {
+  graph [rankdir=LR, pad=0.4, nodesep=0.5, ranksep=0.9, fontname="Helvetica", fontsize=20, labelloc=t,
+         label=<<B>SIRAV — Modelo documental MongoDB (base sirav_3fn)</B><BR/><FONT POINT-SIZE="11" COLOR="#55606b">Patrones: Embedding (daños, evidencias, historial) · Polymorphic (tipo ENTREGA | DEVOLUCION) · Document Versioning · Computed (agregaciones)</FONT>>];
+  node [shape=plaintext, fontname="Helvetica", fontsize=10];
+  edge [color="#3c8a6e", fontname="Helvetica", fontsize=9, fontcolor="#2b6b54"];
+
+  alquiler [label=<<TABLE BORDER="1" COLOR="#9fb1c4" CELLBORDER="0" CELLPADDING="4">
+   <TR><TD BGCOLOR="#1f3a5f"><FONT COLOR="white"><B>PostgreSQL · ALQUILER</B></FONT></TD></TR>
+   <TR><TD ALIGN="LEFT" PORT="id">id_alquiler (PK)</TD></TR>
+   <TR><TD ALIGN="LEFT">id_reserva → vehiculo, categoría</TD></TR>
+   <TR><TD ALIGN="LEFT">km y combustible de salida/entrada</TD></TR></TABLE>>];
+
+  outbox [label=<<TABLE BORDER="1" COLOR="#9fb1c4" CELLBORDER="0" CELLPADDING="4">
+   <TR><TD BGCOLOR="#1f3a5f"><FONT COLOR="white"><B>PostgreSQL · evento_outbox</B></FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">id UUID → _id del documento</TD></TR>
+   <TR><TD ALIGN="LEFT">coleccion · documento JSONB</TD></TR>
+   <TR><TD ALIGN="LEFT">publicado_en · intentos</TD></TR></TABLE>>];
+
+  insp [label=<<TABLE BORDER="1" COLOR="#3c8a6e" CELLBORDER="0" CELLPADDING="3">
+   <TR><TD COLSPAN="2" BGCOLOR="#2b6b54"><FONT COLOR="white"><B>inspecciones_vehiculo</B></FONT></TD></TR>
+   <TR><TD ALIGN="LEFT"><B>_id</B></TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">string (UUID del outbox)</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT" PORT="alq">alquilerId</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">long · referencia a ALQUILER</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">vehiculoId · categoriaId</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">long · copia para agregar sin JOIN</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT"><B>tipo</B></TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">"ENTREGA" | "DEVOLUCION"</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">kilometraje · combustible</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">number</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">actor · fecha</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">long · date</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT" BGCOLOR="#e5f3ec">danos[ ]</TD><TD ALIGN="LEFT" BGCOLOR="#e5f3ec" PORT="danos"><FONT COLOR="#6b7a89">0..50 subdocumentos</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT" BGCOLOR="#e5f3ec">evidencias[ ]</TD><TD ALIGN="LEFT" BGCOLOR="#e5f3ec"><FONT COLOR="#6b7a89">0..10 referencias (string)</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">observaciones</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">string ≤ 2000</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">version</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">int · control optimista</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT" BGCOLOR="#e5f3ec">historial[ ]</TD><TD ALIGN="LEFT" BGCOLOR="#e5f3ec" PORT="hist"><FONT COLOR="#6b7a89">versiones anteriores</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">corregidaPor · corregidaEn</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">opcionales</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">anulada · motivoAnulacion</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">bool · anulación lógica</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">anuladaPor · anuladaEn</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">opcionales</FONT></TD></TR>
+   <TR><TD COLSPAN="2" ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#2b6b54">Índices: {alquilerId, tipo} único · {vehiculoId, fecha↓} · {danos.severidad, fecha↓}</FONT></TD></TR>
+   <TR><TD COLSPAN="2" ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#2b6b54">Validador $jsonSchema: required alquilerId, vehiculoId, tipo, danos, anulada</FONT></TD></TR></TABLE>>];
+
+  dano [label=<<TABLE BORDER="1" COLOR="#3c8a6e" CELLBORDER="0" CELLPADDING="3">
+   <TR><TD BGCOLOR="#e5f3ec"><B>daño (embebido)</B></TD></TR>
+   <TR><TD ALIGN="LEFT">zona · string ≤ 60</TD></TR>
+   <TR><TD ALIGN="LEFT">severidad · BAJA | MEDIA | ALTA</TD></TR>
+   <TR><TD ALIGN="LEFT">descripcion · string ≤ 500</TD></TR></TABLE>>];
+
+  hist [label=<<TABLE BORDER="1" COLOR="#3c8a6e" CELLBORDER="0" CELLPADDING="3">
+   <TR><TD BGCOLOR="#e5f3ec"><B>versión anterior (embebida)</B></TD></TR>
+   <TR><TD ALIGN="LEFT">danos[ ] · evidencias[ ] · observaciones</TD></TR>
+   <TR><TD ALIGN="LEFT">actor · fecha de la corrección</TD></TR></TABLE>>];
+
+  bit [label=<<TABLE BORDER="1" COLOR="#3c8a6e" CELLBORDER="0" CELLPADDING="3">
+   <TR><TD COLSPAN="2" BGCOLOR="#2b6b54"><FONT COLOR="white"><B>bitacora_operaciones</B></FONT></TD></TR>
+   <TR><TD ALIGN="LEFT"><B>_id</B></TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">UUID del outbox</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">accion</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">"RESERVA_" + estado nuevo</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">actor · reservaId</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">long</FONT></TD></TR>
+   <TR><TD ALIGN="LEFT">fecha</TD><TD ALIGN="LEFT"><FONT COLOR="#6b7a89">date · índice {fecha↓}</FONT></TD></TR></TABLE>>];
+
+  agg [label=<<TABLE BORDER="1" COLOR="#b07a1e" CELLBORDER="0" CELLPADDING="3">
+   <TR><TD BGCOLOR="#fff1d6"><B>Agregaciones (GET /api/inspections/analytics)</B></TD></TR>
+   <TR><TD ALIGN="LEFT">1. Por categoría: inspecciones, km y combustible promedio</TD></TR>
+   <TR><TD ALIGN="LEFT">2. Zonas de daño por mes ($unwind danos)</TD></TR>
+   <TR><TD ALIGN="LEFT">3. Incidencias por vehículo ($unwind danos)</TD></TR>
+   <TR><TD ALIGN="LEFT">Consulta compleja: daños ALTA con $elemMatch y rango de fechas</TD></TR></TABLE>>];
+
+  alquiler:id -> outbox [label="sp_iniciar_alquiler / sp_cerrar_alquiler\nescriben el evento en la misma transacción"];
+  outbox -> insp [label="OutboxPublisher\nupsert por _id (idempotente)"];
+  outbox -> bit [label="trg_auditar_reserva"];
+  insp:danos:e -> dano:w [dir=back, arrowtail=diamond, label="0..50"];
+  insp:hist:e -> hist:w [dir=back, arrowtail=diamond, label="0..N"];
+  insp -> agg [style=dashed, color="#b07a1e"];
+}

@@ -120,3 +120,15 @@ Las pruebas de backend usan `sirav_3fn_test`; las de navegador requieren la apli
 - [Matriz de los 101 supuestos funcionales](docs/SUPUESTOS-CUMPLIMIENTO.md)
 
 El paquete vigente es `SIRAV-3FN-supuestos.zip`. Se conservan los anteriores. La VM Linux, su dimensionamiento, el video, los respaldos restaurados, el historial Git y la participación del equipo requieren evidencias reales de los estudiantes; esta implementación no las acredita.
+
+## Documentación de la entrega final
+
+Índice completo en [`docs/ENTREGA-FINAL.md`](docs/ENTREGA-FINAL.md).
+
+| Fase | Documento |
+|---|---|
+| Fase 1 | [Propuesta v1.2](docs/fase-1/SIRAV_Propuesta.docx) · [Supuestos](docs/fase-1/supuestos.md) ([v2.0 y cumplimiento](docs/SUPUESTOS-CUMPLIMIENTO.md)) · [Requerimientos y trazabilidad](docs/fase-1/requerimientos.md) · [Matriz de riesgos](docs/fase-1/matriz-riesgos.md) · [Diccionario de datos y 3FN](docs/fase-1/diccionario-datos.md) · [Reportes SQL R1–R6](docs/fase-1/reportes-sql.md) |
+| Modelado | [Diagramas](docs/diagramas/): Chen, EER, Crow's Foot lógico y relacional, arquitectura, estados y modelo documental |
+| Gestión | [Metodología, Gantt, RACI y seguimiento](docs/gestion/README.md) |
+| Fase 2 | [Selección de SO y RDBMS](docs/fase-2/seleccion-so-rdbms.md) · [Guía de instalación en tres VM](docs/fase-2/guia-instalacion.md) · [Modelo documental MongoDB](docs/fase-2/modelo-documental-mongodb.md) · [Pruebas](docs/fase-2/pruebas.md) · [Auditoría en las VM](docs/AUDITORIA-FUNCIONAL-VM.md) · [Política de respaldos](docs/POLITICA-RESPALDOS.md) |
+| Cierre | [Informe ejecutivo](docs/cierre/SIRAV_Informe_Ejecutivo.pdf) · [Guion del video](docs/cierre/guion-video.md) |
