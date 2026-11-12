@@ -1,0 +1,36 @@
+@base = http://localhost:8080/api
+@token = REEMPLAZAR_POR_JWT_DEL_LOGIN
+
+### Iniciar sesión. Copiar el token de la respuesta.
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"admin@sirav.local","password":"SiravDemo2026!"}
+
+### Catálogo filtrado. Usar fechas actuales.
+GET {{base}}/vehicles?from=2026-11-10&to=2026-11-12&available=true
+Authorization: Bearer {{token}}
+
+### Crear reserva: sustituir IDs y fechas por datos válidos.
+POST {{base}}/reservations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Idempotency-Key: 55ff4fb9-bd66-4d63-9702-30770724ea03
+
+{"idCliente":1,"idVehiculo":1,"fechaInicio":"2026-11-10","fechaFin":"2026-11-12"}
+
+### Historial
+GET {{base}}/reservations/1/history
+Authorization: Bearer {{token}}
+
+### MongoDB: consulta compleja de daños altos
+GET {{base}}/inspections?severe=true&from=2026-10-01&to=2026-12-31
+Authorization: Bearer {{token}}
+
+### Tres agregaciones documentales
+GET {{base}}/inspections/analytics
+Authorization: Bearer {{token}}
+
+### Reporte complejo
+GET {{base}}/reports/ranking?from=2026-10-01&to=2026-12-31
+Authorization: Bearer {{token}}

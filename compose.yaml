@@ -1,0 +1,68 @@
+name: sirav3fn
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    command: [postgres, -c, timezone=America/Bogota]
+    environment:
+      POSTGRES_USER: sirav_owner
+      POSTGRES_DB: sirav_3fn
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Configure .env}
+      TZ: America/Bogota
+    volumes:
+      - postgres_3fn_data:/var/lib/postgresql/data
+      - ./database/postgres:/schema:ro
+      - ./database/postgres/init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -h 127.0.0.1 -U sirav_owner -d sirav_3fn"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  mongo:
+    image: mongo:8.0.5
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Configure .env}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:?Configure .env}
+    volumes:
+      - mongo_3fn_data:/data/db
+      - ./database/mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'mongosh --quiet --username sirav_app --password "$$MONGO_PASSWORD" --authenticationDatabase sirav_3fn sirav_3fn --eval "quit(db.adminCommand({ping:1}).ok ? 0 : 2)"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/sirav_3fn
+      DB_USER: sirav_app
+      DB_PASSWORD: ${DB_PASSWORD}
+      MONGO_URI: mongodb://sirav_app:${MONGO_PASSWORD}@mongo:27017/sirav_3fn?authSource=sirav_3fn
+      JWT_SECRET: ${JWT_SECRET:?Configure .env}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8088,http://127.0.0.1:8088}
+      TZ: America/Bogota
+      EVIDENCE_DIRECTORY: /app/evidencias
+    volumes:
+      - evidence_data:/app/evidencias
+    depends_on:
+      postgres: { condition: service_healthy }
+      mongo: { condition: service_healthy }
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:8088:80"]
+    depends_on: [backend]
+    restart: unless-stopped
+volumes:
+  postgres_3fn_data:
+  mongo_3fn_data:
+  evidence_data:

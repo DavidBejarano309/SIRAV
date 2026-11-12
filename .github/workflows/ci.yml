@@ -1,0 +1,72 @@
+name: SIRAV CI
+on:
+  push:
+  pull_request:
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Configurar entorno
+        run: bash scripts/configure.sh
+      - name: Iniciar bases reales
+        run: docker compose -f compose.yaml -f compose.test.yaml up -d --wait postgres mongo
+      - name: Probar las excepciones con nombre (SR001 a SR008)
+        run: docker compose -f compose.yaml -f compose.test.yaml exec -T postgres psql -U sirav_owner -d sirav_3fn -v ON_ERROR_STOP=1 -f /schema/pruebas-excepciones.sql
+      - name: Crear bases de auditoría aisladas (igual que scripts/prepare-vm-audit.ps1)
+        run: |
+          set -a; source .env; set +a
+          db="sirav_audit_$(date -u +%Y%m%d%H%M%S)"
+          echo "AUDIT_DB=$db" >> "$GITHUB_ENV"
+          dc="docker compose -f compose.yaml -f compose.test.yaml"
+          $dc exec -T postgres psql -U sirav_owner -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE $db OWNER sirav_owner"
+          for f in database/postgres/0*.sql; do
+            $dc exec -T postgres psql -U sirav_owner -d "$db" -v ON_ERROR_STOP=1 -q -f "/schema/$(basename "$f")"
+          done
+          sed "s/'sirav_3fn'/'$db'/g" database/mongo/init.js > /tmp/audit-init.js
+          $dc exec -T -e MONGO_PASSWORD="$MONGO_PASSWORD" mongo sh -c 'cat > /tmp/audit-init.js; mongosh --quiet -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin /tmp/audit-init.js' < /tmp/audit-init.js
+      - name: Compilar y ejecutar pruebas integrales y de auditoría
+        env:
+          SIRAV_INTEGRATION: "true"
+          SIRAV_AUDIT: "true"
+          SEED_DEMO: "true"
+          DEMO_PASSWORD: SiravDemo2026!
+          JWT_SECRET: ci-test-secret-at-least-32-bytes-long
+          DB_USER: sirav_app
+          SIRAV_TEST_EVIDENCE_DIR: /tmp/sirav-test-evidencias
+        run: |
+          set -a
+          source .env
+          set +a
+          export DB_URL="jdbc:postgresql://localhost:55432/${AUDIT_DB}"
+          export SIRAV_AUDIT_OWNER_PASSWORD="$POSTGRES_PASSWORD"
+          export MONGO_URI="mongodb://sirav_app:${MONGO_PASSWORD}@localhost:57017/${AUDIT_DB}?authSource=${AUDIT_DB}"
+          mvn -B -f backend/pom.xml verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: backend/target/surefire-reports
+      - name: Detener servicios
+        if: always()
+        run: docker compose -f compose.yaml -f compose.test.yaml down
