@@ -16,8 +16,12 @@ for i in $(seq 1 90); do
   [ "$i" = 90 ] && falla "el backend no respondió en 3 minutos"; sleep 2
 done
 
-TOKEN=$(curl -fsS -X POST "$BASE/api/auth/login" -H 'Content-Type: application/json' \
-  -d "{\"email\":\"operador@sirav.local\",\"password\":\"$PASS\"}" | json "d['token']") || falla "inicio de sesión del operador"
+# Las cuentas de demostración se crean justo después de que el backend arranca: se reintenta.
+for i in $(seq 1 15); do
+  TOKEN=$(curl -fsS -X POST "$BASE/api/auth/login" -H 'Content-Type: application/json' \
+    -d "{\"email\":\"operador@sirav.local\",\"password\":\"$PASS\"}" 2>/dev/null | json "d['token']" 2>/dev/null) && break
+  [ "$i" = 15 ] && falla "inicio de sesión del operador (¿SEED_DEMO=true y DEMO_PASSWORD correctos?)"; sleep 2
+done
 ok "inicio de sesión con JWT (operador@sirav.local)"
 AUTH=(-H "Authorization: Bearer $TOKEN")
 
