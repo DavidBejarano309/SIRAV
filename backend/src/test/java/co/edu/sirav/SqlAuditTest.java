@@ -8,7 +8,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.springframework.http.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+// La condición de AuditSupport no se hereda: sin esto, "mvn verify" (por ejemplo al construir la imagen Docker) las ejecuta sin bases de auditoría.
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class SqlAuditTest extends AuditSupport {
   @Test
   void allProjectRoutinesTriggersViewsAndRestrictedPrivilegesExist() {
