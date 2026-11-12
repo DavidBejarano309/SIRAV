@@ -50,8 +50,8 @@ CIERRE=$(curl -fsS -X POST "${AUTH[@]}" -H 'Content-Type: application/json' "$BA
   -d "$(entrega $((KM + 120)) 80 '[{"zona":"Puerta trasera","severidad":"ALTA","descripcion":"Rayón de prueba"}]' devolucion 'Cierre de verificación')") || falla "devolución"
 ok "sp_cerrar_alquiler: estado $(echo "$CIERRE" | json "d['estado_alquiler']"), pagado $(echo "$CIERRE" | json "d['pagado']")"
 
-curl -fsS "${AUTH[@]}" "$BASE/api/rentals/$ALQ/payments" | json "d[0]['tipo']+' '+d[0]['estado']" | grep -q 'SIMULADO APROBADO' || falla "pago simulado"
-ok "pago SIMULADO APROBADO registrado"
+PAGO=$(curl -fsS "${AUTH[@]}" "$BASE/api/rentals/$ALQ/payments" | json "d['pagos'][0]['tipo']+' '+d['pagos'][0]['estado']+' '+str(d['pagos'][0]['monto'])") || falla "pago simulado"
+case "$PAGO" in "SIMULADO APROBADO "*) ok "pago registrado: $PAGO";; *) falla "pago inesperado: $PAGO";; esac
 ESTADOS=$(curl -fsS "${AUTH[@]}" "$BASE/api/reservations/$RES/history" | json "' -> '.join(r['estado_nuevo'] for r in d)")
 ok "auditoría (trg_auditar_reserva): $ESTADOS"
 

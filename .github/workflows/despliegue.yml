@@ -16,6 +16,9 @@ jobs:
   despliegue:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash  # bash -eo pipefail: un fallo antes de "| tee" detiene el paso
     steps:
       - uses: actions/checkout@v4
       - name: Versiones
@@ -48,6 +51,8 @@ jobs:
           docker compose exec -T mongo sh -c 'mongorestore --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --nsFrom "sirav_3fn.*" --nsTo "sirav_restaurada.*"' < "$dir/mongodb.archive.gz"
           docker compose exec -T mongo sh -c 'mongosh --quiet --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "for (const d of [\"sirav_3fn\",\"sirav_restaurada\"]) print(d, db.getSiblingDB(d).inspecciones_vehiculo.countDocuments(), db.getSiblingDB(d).bitacora_operaciones.countDocuments())"' | tee -a restauracion.txt
           test "$(sed -n 1p restauracion.txt | cut -d'|' -f2-)" = "$(sed -n 2p restauracion.txt | cut -d'|' -f2-)"
+          test "$(sed -n 3p restauracion.txt | cut -d' ' -f2-)" = "$(sed -n 4p restauracion.txt | cut -d' ' -f2-)"
+          test "$(sed -n 4p restauracion.txt | cut -d' ' -f2)" -gt 0
       - name: 9. Reinicio (los datos persisten en los volúmenes)
         run: |
           docker compose -f compose.yaml -f compose.vm.yaml restart
