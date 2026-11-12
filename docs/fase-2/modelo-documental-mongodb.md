@@ -1,4 +1,4 @@
-# Modelo documental de MongoDB — SIRAV
+# Modelo documental de MongoDB
 
 Historias de Jira: **SIRAV-23** (modelo y justificación), **SIRAV-25** (colecciones y CRUD) y **SIRAV-26** (consulta compleja y agregaciones). En el despliegue del equipo, MongoDB corre en su propia VM (SIRAV-MongoDB, 192.168.56.22). MongoDB 8.0 guarda dos colecciones en la base `sirav_3fn`: **`inspecciones_vehiculo`** y **`bitacora_operaciones`**. Las crea `database/mongo/init.js` y la aplicación las usa desde `backend/.../inspection/`.
 
@@ -11,7 +11,7 @@ Historias de Jira: **SIRAV-23** (modelo y justificación), **SIRAV-25** (colecci
 | Qué guarda | Reservas, alquileres, pagos, cargos, tarifas, vehículos, usuarios y auditoría de estados | Inspecciones de entrega y devolución, y bitácora de eventos |
 | Naturaleza del dato | Estructurado, con relaciones e integridad transaccional | Estructura variable que se lee como documento completo |
 | Reglas | RN-01 a RN-05 en restricciones, procedimientos y triggers | Validador `$jsonSchema`, índice único y validación en la API |
-| Papel | **Fuente única de verdad** del negocio | Registro documental complementario |
+| Papel | Fuente única de verdad del negocio | Registro documental complementario |
 
 - **Inspecciones.** Cada inspección tiene cero o muchos daños (zona, severidad y descripción) y una lista variable de evidencias. Además, cada corrección conserva la versión anterior. En SQL serían cuatro tablas (inspección, daño, evidencia y versión) que siempre se consultan juntas; en MongoDB es un solo documento que se lee y se escribe de una vez.
 - **Bitácora.** Es de escritura continua, no tiene relaciones y solo se consulta por fecha.
@@ -67,8 +67,8 @@ Documento de ejemplo (devolución corregida una vez):
 
 | Patrón | Dónde | Por qué |
 |---|---|---|
-| **Embedding** (13.1) | `danos[]`, `evidencias[]` e `historial[]` dentro de la inspección | Se leen siempre con la inspección y no tienen sentido solos. Una lectura trae todo y la corrección es una sola escritura atómica |
-| **Polymorphic** (13.6) | Una colección para `ENTREGA` y `DEVOLUCION`, distinguidas por `tipo` | Comparten la misma forma; el índice único `{alquilerId, tipo}` garantiza una de cada tipo por alquiler (RN-05). En la bitácora, `accion` distingue los eventos |
+| Embedding (13.1) | `danos[]`, `evidencias[]` e `historial[]` dentro de la inspección | Se leen siempre con la inspección y no tienen sentido solos. Una lectura trae todo y la corrección es una sola escritura atómica |
+| Polymorphic (13.6) | Una colección para `ENTREGA` y `DEVOLUCION`, distinguidas por `tipo` | Comparten la misma forma; el índice único `{alquilerId, tipo}` garantiza una de cada tipo por alquiler (RN-05). En la bitácora, `accion` distingue los eventos |
 
 **Otros patrones aplicados (fuera del capítulo 13):**
 

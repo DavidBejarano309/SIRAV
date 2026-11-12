@@ -1,4 +1,4 @@
-# Análisis de selección de sistema operativo y RDBMS — SIRAV
+# Análisis de selección de sistema operativo y RDBMS
 
 Historia de Jira: **SIRAV-14**. Datos consultados el 11 de noviembre de 2026 en las fuentes oficiales listadas al final.
 
@@ -12,13 +12,13 @@ Escala de 1 (no cumple) a 5 (cumple totalmente). Los pesos suman 100 y el puntaj
 
 | Criterio | Peso | Ubuntu Server 24.04 LTS | Debian 13 | Rocky Linux 10 |
 |---|---|---|---|---|
-| Soporte oficial de MongoDB | 25 | **5** · MongoDB 7.x, 8.x y 9.x | **3** · solo MongoDB 9.x | **5** · MongoDB 7.x, 8.x y 9.x |
-| Paquetes de PostgreSQL | 15 | **5** · repositorio oficial PGDG y PostgreSQL 16 incluido | **5** · repositorio oficial PGDG | **5** · repositorio oficial PGDG |
-| Soporte durante el proyecto y después | 15 | **5** · hasta mayo de 2029 | **5** · seguridad hasta agosto de 2028 | **5** · activo hasta mayo de 2030 |
-| Documentación y comunidad (systemd, Spring Boot, MongoDB) | 15 | **5** | **4** | **3** |
-| Consumo de recursos en la VM (perfil mínimo de 4 GB) | 15 | **4** | **5** | **4** |
-| Experiencia del equipo | 15 | **5** · usado en Sistemas Operacionales | **3** | **4** · experiencia con Red Hat |
-| **Puntaje ponderado** | **100** | **4,85** | **4,05** | **4,40** |
+| Soporte oficial de MongoDB | 25 | 5, MongoDB 7.x, 8.x y 9.x | 3, solo MongoDB 9.x | 5, MongoDB 7.x, 8.x y 9.x |
+| Paquetes de PostgreSQL | 15 | 5, repositorio oficial PGDG y PostgreSQL 16 incluido | 5, repositorio oficial PGDG | 5, repositorio oficial PGDG |
+| Soporte durante el proyecto y después | 15 | 5, hasta mayo de 2029 | 5, seguridad hasta agosto de 2028 | 5, activo hasta mayo de 2030 |
+| Documentación y comunidad (systemd, Spring Boot, MongoDB) | 15 | 5 | 4 | 3 |
+| Consumo de recursos en la VM (perfil mínimo de 4 GB) | 15 | 4 | 5 | 4 |
+| Experiencia del equipo | 15 | 5, usado en Sistemas Operacionales | 3 | 4, experiencia con Red Hat |
+| Puntaje ponderado | 100 | 4,85 | 4,05 | 4,40 |
 
 - **Por qué gana Ubuntu.** Es el único que suma soporte oficial de MongoDB 8.x, documentación abundante para el stack (PostgreSQL, MongoDB, Java y systemd) y experiencia previa del equipo.
 - **Debian 13** es más liviano, pero MongoDB solo lo soporta desde la serie 9.x, que es muy reciente.
@@ -38,14 +38,14 @@ Se elige **24.04** porque soporta la serie estable de MongoDB 8.x y el ciclo de 
 
 | Criterio | Peso | PostgreSQL 16 | MySQL 8.4 LTS | MariaDB 11.8 LTS |
 |---|---|---|---|---|
-| Regla RN-01 declarativa y condicional (sin solapamientos solo para reservas vigentes) | 30 | **5** · `EXCLUDE USING gist` con `daterange`, `btree_gist` y `WHERE` | **1** · no tiene restricción de solapamiento; requiere triggers y bloqueos | **3** · tiene `WITHOUT OVERLAPS` sobre periodos, pero solo en índices únicos sin condición, así que las reservas canceladas también bloquearían |
-| Procedimientos, funciones, excepciones y transacciones | 20 | **5** · PL/pgSQL, `RAISE` con SQLSTATE propio, bloques de excepción | **3** · SQL/PSM con `SIGNAL` y manejadores, menos expresivo | **3** · igual que MySQL |
-| Integridad: CHECK, tipos de rango, DDL transaccional | 15 | **5** · todo, incluido DDL que se puede revertir | **3** · CHECK sí; sin tipos de rango; el DDL hace COMMIT implícito | **3** · CHECK sí; sin tipos de rango; DDL con COMMIT implícito |
-| SQL para reportes R1 a R6 (ventanas, CTE, `generate_series`) | 10 | **5** | **4** · sin `generate_series` | **4** · usa el motor `SEQUENCE` en su lugar |
-| Seguridad: roles, privilegios por columna, `SECURITY DEFINER` | 10 | **5** · además seguridad por filas | **4** | **4** |
-| Licencia, soporte y paquetes | 10 | **5** · licencia libre tipo BSD; soporte hasta noviembre de 2028 | **4** · GPL o comercial (Oracle); soporte premier hasta abril de 2029 | **4** · GPL; mantenimiento hasta 2028 |
-| Integración con Spring Boot (JDBC, `SimpleJdbcCall`) | 5 | **5** | **5** | **5** |
-| **Puntaje ponderado** | **100** | **5,00** | **2,80** | **3,40** |
+| Regla RN-01 declarativa y condicional (sin solapamientos solo para reservas vigentes) | 30 | 5, `EXCLUDE USING gist` con `daterange`, `btree_gist` y `WHERE` | 1, no tiene restricción de solapamiento; requiere triggers y bloqueos | 3, tiene `WITHOUT OVERLAPS` sobre periodos, pero solo en índices únicos sin condición, así que las reservas canceladas también bloquearían |
+| Procedimientos, funciones, excepciones y transacciones | 20 | 5, PL/pgSQL, `RAISE` con SQLSTATE propio, bloques de excepción | 3, SQL/PSM con `SIGNAL` y manejadores, menos expresivo | 3, igual que MySQL |
+| Integridad: CHECK, tipos de rango, DDL transaccional | 15 | 5, todo, incluido DDL que se puede revertir | 3, CHECK sí; sin tipos de rango; el DDL hace COMMIT implícito | 3, CHECK sí; sin tipos de rango; DDL con COMMIT implícito |
+| SQL para reportes R1 a R6 (ventanas, CTE, `generate_series`) | 10 | 5 | 4, sin `generate_series` | 4, usa el motor `SEQUENCE` en su lugar |
+| Seguridad: roles, privilegios por columna, `SECURITY DEFINER` | 10 | 5, además seguridad por filas | 4 | 4 |
+| Licencia, soporte y paquetes | 10 | 5, licencia libre tipo BSD; soporte hasta noviembre de 2028 | 4, GPL o comercial (Oracle); soporte premier hasta abril de 2029 | 4, GPL; mantenimiento hasta 2028 |
+| Integración con Spring Boot (JDBC, `SimpleJdbcCall`) | 5 | 5 | 5 | 5 |
+| Puntaje ponderado | 100 | 5,00 | 2,80 | 3,40 |
 
 - **El criterio decisivo es RN-01.** PostgreSQL es el único que expresa "un vehículo no puede tener dos reservas *vigentes* solapadas" como una sola restricción declarativa. Así la regla se cumple aunque dos usuarios reserven al mismo tiempo, que es la justificación central de la propuesta (sección 1.3). En MySQL habría que programarla con triggers y bloqueos. En MariaDB el `WITHOUT OVERLAPS` no permite excluir las reservas canceladas o cerradas.
 - **Versión.** La aplicación usa PostgreSQL 17.6 en contenedor (soporte hasta noviembre de 2029). Los scripts de `database/postgres/` también funcionan en el PostgreSQL 16 de Ubuntu 24.04 si se instala sin Docker.

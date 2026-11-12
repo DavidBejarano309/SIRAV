@@ -1,4 +1,4 @@
-# Requerimientos priorizados — SIRAV
+# Requerimientos priorizados
 
 Lista oficial de la propuesta (Tabla 10). La prioridad es **Alta** (indispensable), **Media** (importante) o **Baja** (deseable). La trazabilidad indica dónde se implementa cada requerimiento en el repositorio:
 

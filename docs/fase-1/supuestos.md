@@ -1,4 +1,4 @@
-# Documento de supuestos — SIRAV
+# Documento de supuestos
 
 Resumen de los supuestos que rigen el proyecto. El documento completo del equipo, versión 2.0 con 101 supuestos funcionales, está en [`docs/referencias/Supuestos_SIRAV.docx`](../referencias/Supuestos_SIRAV.docx). Su verificación uno por uno está en [`docs/SUPUESTOS-CUMPLIMIENTO.md`](../SUPUESTOS-CUMPLIMIENTO.md).
 

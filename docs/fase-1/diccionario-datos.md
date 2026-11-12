@@ -1,4 +1,4 @@
-# Diccionario de datos — SIRAV
+# Diccionario de datos
 
 Historia de Jira: **SIRAV-13**. Generado del catálogo de la base `sirav_3fn` creada por `database/postgres/01-schema.sql` y `02-integrity.sql`. Son 13 tablas de dominio y 81 columnas, más la tabla técnica `evento_outbox`.
 
@@ -277,7 +277,7 @@ Además de los índices que crean las PK y las UNIQUE:
 | `usuario` | `id_usuario → nombre, apellido, email, password_hash, activo, creado_en, token_version`; `email → id_usuario` | `email` es llave candidata, no un atributo no clave intermedio |
 | `rol` | `id_rol → nombre`; `nombre → id_rol` | Llave candidata |
 | `usuario_rol` | `(id_usuario, id_rol) → asignado_en` | Un solo atributo no clave |
-| `cliente` | `id_cliente → id_usuario, nombres, apellidos, documento, telefono, email, licencia_conduccion`; `documento → id_cliente`; `id_usuario → id_cliente` | Con cuenta, nombre y correo **no** se guardan aquí (`ck_cliente_origen_identidad`), así que no existe la transitiva `id_cliente → id_usuario → nombre` |
+| `cliente` | `id_cliente → id_usuario, nombres, apellidos, documento, telefono, email, licencia_conduccion`; `documento → id_cliente`; `id_usuario → id_cliente` | Con cuenta, nombre y correo no se guardan aquí (`ck_cliente_origen_identidad`), así que no existe la transitiva `id_cliente → id_usuario → nombre` |
 | `categoria_vehiculo` | `id_categoria → nombre, descripcion` | Sin transitivas |
 | `vehiculo` | `id_vehiculo → id_categoria, placa, marca, modelo, anio, color, kilometraje_actual, estado_operativo`; `placa → id_vehiculo` | Guarda `id_categoria`, no el nombre de la categoría |
 | `tarifa` | `id_tarifa → id_categoria, valor_diario, vigente_desde, vigente_hasta` | La tarifa depende de la categoría y la vigencia, no del vehículo |
@@ -295,7 +295,7 @@ Además de los índices que crean las PK y las UNIQUE:
 | Columna | De qué se deriva | Por qué se guarda | Cómo se mantiene consistente |
 |---|---|---|---|
 | `reserva.id_tarifa` | Categoría del vehículo + periodo | Congela el precio pactado: si después cambian las tarifas, la reserva conserva la suya (RN-04) | Lo asigna `sp_crear_reserva`; `trg_validar_reserva` comprueba que sea de la categoría y cubra el periodo |
-| `vehiculo.estado_operativo` | Alquiler activo del vehículo | Mostrar el catálogo sin recalcular el estado en cada consulta | Lo actualiza `trg_actualizar_estado_vehiculo` al entregar y al cerrar. La disponibilidad por fechas **no** depende de esta columna, sino de `fn_vehiculo_disponible` |
+| `vehiculo.estado_operativo` | Alquiler activo del vehículo | Mostrar el catálogo sin recalcular el estado en cada consulta | Lo actualiza `trg_actualizar_estado_vehiculo` al entregar y al cerrar. La disponibilidad por fechas no depende de esta columna, sino de `fn_vehiculo_disponible` |
 | `vehiculo.kilometraje_actual` | Kilometraje del último alquiler | Validar que el kilometraje de una entrega no sea menor al registrado | Lo actualiza `trg_actualizar_estado_vehiculo` |
 
 Estos tres datos rompen la 3FN en sentido estricto, pero cada uno responde a una razón de negocio o de rendimiento y la base de datos tiene un mecanismo que evita inconsistencias.

@@ -1,4 +1,4 @@
-# Documento SQL de reportes — SIRAV
+# Documento SQL de reportes
 
 Historia de Jira: **SIRAV-22**. Son los seis reportes de la propuesta (sección 6.6, Tabla 9). Cada consulta está en `backend/src/main/resources/sql/reports/<nombre>.sql` y la aplicación la ejecuta con `GET /api/reports/<nombre>?from=AAAA-MM-DD&to=AAAA-MM-DD`, desde la pantalla **Reportes** (perfiles ADMIN y OPERADOR).
 

@@ -1,10 +1,10 @@
-# SIRAV — Entrega final
+# Entrega final del proyecto SIRAV
 
-**Sistema Integral de Reservas y Alquiler de Vehículos** · Bases de Datos 2 — Proyecto Final · Universidad El Bosque
+Sistema Integral de Reservas y Alquiler de Vehículos. Proyecto final de Bases de Datos 2, Universidad El Bosque.
 
-**Integrantes:** David Felipe Bejarano Montes y Jose David Rodriguez · **Docente:** Ing., Esp., M.Ed. Christian Felipe Duarte · **Fecha:** 11 de noviembre de 2026
+Integrantes: David Felipe Bejarano Montes y Jose David Rodriguez. Docente: Ing., Esp., M.Ed. Christian Felipe Duarte. Fecha: 11 de noviembre de 2026.
 
-**Repositorio:** https://github.com/DavidBejarano309/SIRAV (aplicación en el PR #17; documentación en el PR #18) · **Jira:** proyecto SIRAV
+Repositorio: https://github.com/DavidBejarano309/SIRAV (aplicación en el PR #17 y documentación en el PR #18). Seguimiento en Jira, proyecto SIRAV.
 
 Cada documento viene en PDF para leerlo directamente. Los originales editables (Markdown, DOCX y fuentes de los diagramas) están en el repositorio y en `08_Repositorio/`.
 
@@ -23,13 +23,13 @@ Cada documento viene en PDF para leerlo directamente. Los originales editables (
 | Fase 1 | Documento SQL de reportes | `02_Modelado/Reportes_SQL_R1-R6.pdf` | SIRAV-22 | Completo |
 | Fase 2 | Análisis de selección de SO y de RDBMS | `03_Fase2_Infraestructura/Seleccion_SO_y_RDBMS.pdf` | SIRAV-14 | Completo |
 | Fase 2 | VM implementada | Tres VM Ubuntu Server 24.04 en VirtualBox: `03_Fase2_Infraestructura/Guia_de_instalacion.pdf`, `VM_bases_de_datos.pdf` y `VM_web.pdf` | SIRAV-15 | Completo |
-| Fase 2 | Instalación, puertos, arranque y respaldos | `03_Fase2_Infraestructura/Guia_de_instalacion.pdf` y `Politica_de_respaldos.pdf` | SIRAV-35 | Completo. **Pendiente:** ejecutar el primer respaldo real en las VM |
+| Fase 2 | Instalación, puertos, arranque y respaldos | `03_Fase2_Infraestructura/Guia_de_instalacion.pdf` y `Politica_de_respaldos.pdf` | SIRAV-35 | Completo. Pendiente: ejecutar el primer respaldo real en las VM |
 | Fase 2 | RDBMS implementado y scripts de creación, inserción y varios | `04_PostgreSQL/` | SIRAV-16 a 21, 24, 32 | Completo |
 | Fase 2 | Modelo documental e implementación en MongoDB | `05_MongoDB/` | SIRAV-23, 25, 26 | Completo |
 | Fase 2 | Conexiones de la aplicación a ambas bases | `08_Repositorio/SIRAV_codigo_fuente.zip` (`backend/`) | SIRAV-27 a 31 | Completo |
 | Fase 2 | Pruebas de concurrencia y de punta a punta | `06_Pruebas_y_Evidencias/` (plan, auditoría en las VM y evidencias) | SIRAV-18, 33, 34 | Completo |
 | Fase 2 | Repositorio Git | GitHub y `08_Repositorio/` | SIRAV-8 | Completo |
-| Fase 2 | Video demostrativo (máx. 15 min) | `07_Cierre/Guion_del_video.pdf` (diálogos de David y Jose David) | SIRAV-37 | **Pendiente:** grabar |
+| Fase 2 | Video demostrativo (máx. 15 min) | `07_Cierre/Guion_del_video.pdf` (diálogos de David y Jose David) | SIRAV-37 | Pendiente: grabar |
 | Cierre | Informe ejecutivo (máx. 5 páginas) | `07_Cierre/SIRAV_Informe_Ejecutivo.pdf` (4 páginas) y `.docx` | SIRAV-36 | Completo |
 
 ## Resultados verificables

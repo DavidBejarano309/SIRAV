@@ -1,6 +1,6 @@
-# Guion del video — SIRAV
+# Guion del video
 
-Historia de Jira: **SIRAV-37**. Video demostrativo de **14 minutos y 30 segundos** (máximo 15) para **David Felipe Bejarano Montes** y **Jose David Rodriguez**. Sigue la demostración de la sección 9 de la propuesta, sobre el despliegue real en las tres máquinas virtuales.
+Historia de Jira: SIRAV-37. Video demostrativo de 14 minutos y 30 segundos (el máximo es 15) para David Felipe Bejarano Montes y Jose David Rodriguez. Sigue la demostración de la sección 9 de la propuesta, sobre el despliegue real en las tres máquinas virtuales.
 
 Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. No hace falta leerlo palabra por palabra: lo importante es mostrar cada cosa en el orden indicado.
 
@@ -30,13 +30,13 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 
 ## Escenas
 
-### Escena 0 · Presentación — 0:00 a 0:40 · David
+### Escena 0. Presentación (0:00 a 0:40, David)
 
 **Pantalla:** portada (README del repositorio o diapositiva con el nombre del proyecto).
 
 > **David:** Buenas, profesor. Somos David Bejarano y Jose David Rodríguez, y este es SIRAV, el Sistema Integral de Reservas y Alquiler de Vehículos, nuestro proyecto final de Bases de Datos 2. En los próximos catorce minutos le vamos a mostrar el modelo de datos, las reglas que viven en PostgreSQL, el uso de MongoDB, el despliegue en máquinas virtuales Linux y las pruebas que hicimos.
 
-### Escena 1 · Problema y arquitectura — 0:40 a 2:00 · Jose David
+### Escena 1. Problema y arquitectura (0:40 a 2:00, Jose David)
 
 **Pantalla:** VirtualBox con las tres VM encendidas. Luego el diagrama `SIRAV_arquitectura_3VM.png`.
 
@@ -48,7 +48,7 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 
 > **Jose David:** Con este script comprobamos que las tres están arriba y que la API responde con las dos bases conectadas.
 
-### Escena 2 · Modelo de datos — 2:00 a 3:30 · David
+### Escena 2. Modelo de datos (2:00 a 3:30, David)
 
 **Pantalla:** `SIRAV_ER_Chen.png`, luego `SIRAV_ER_Extendido.png` y luego `SIRAV_Relacional_CrowsFoot.png`.
 
@@ -60,7 +60,7 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 >
 > Este diagrama Crow's Foot lo generamos directamente del catálogo de la base, así que coincide exactamente con lo que está desplegado.
 
-### Escena 3 · Flujo del cliente — 3:30 a 5:00 · Jose David
+### Escena 3. Flujo del cliente (3:30 a 5:00, Jose David)
 
 **Pantalla:** la aplicación. Iniciar sesión con `cliente@sirav.local`.
 
@@ -70,7 +70,7 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 
 > **Jose David:** La aplicación me muestra el costo: días por tarifa diaria vigente. Esa tarifa queda congelada en la reserva, para que si mañana sube el precio, mi reserva conserve el que pacté. Reservo… y queda en estado **SOLICITADA**. Por dentro, la API no inserta directamente en la tabla: llama al procedimiento almacenado `sp_crear_reserva`.
 
-### Escena 4 · La regla principal en la base — 5:00 a 6:30 · David
+### Escena 4. La regla principal en la base (5:00 a 6:30, David)
 
 **Pantalla:** la aplicación (misma sesión de cliente).
 
@@ -88,7 +88,7 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 
 > **David:** Cada regla que la base rechaza tiene su propia excepción con nombre y código, como pide la propuesta. Este script provoca las ocho a propósito y lo revierte todo al final: reserva solapada, mantenimiento solapado, transición inválida, inspección faltante, vehículo no disponible, tarifa no vigente, parámetro inválido y tarifa histórica. Las ocho devuelven su código y su nombre.
 
-### Escena 5 · Flujo del operador — 6:30 a 8:45 · Jose David
+### Escena 5. Flujo del operador (6:30 a 8:45, Jose David)
 
 **Pantalla:** cerrar sesión e iniciar como `operador@sirav.local`. Ir a **Reservas**.
 
@@ -106,7 +106,7 @@ Cada escena dice quién habla, qué se muestra en pantalla y el texto sugerido. 
 
 > **Jose David:** Aquí está el pago simulado aprobado. Y en el historial se ve la auditoría que llena un trigger: solicitada, confirmada, activa y cerrada, con quién hizo cada cambio y cuándo.
 
-### Escena 6 · MongoDB — 8:45 a 10:15 · David
+### Escena 6. MongoDB (8:45 a 10:15, David)
 
 **Pantalla:** T3. Entrar a mongosh:
 
@@ -128,13 +128,13 @@ Luego ejecutar `db.inspecciones_vehiculo.find({anulada:false}).sort({fecha:-1}).
 
 > **David:** Y estas son las tres agregaciones: promedios por categoría, zonas con daños por mes e incidencias por vehículo.
 
-### Escena 7 · Reportes SQL — 10:15 a 11:15 · Jose David
+### Escena 7. Reportes SQL (10:15 a 11:15, Jose David)
 
 **Pantalla:** **Historial y reportes**: ocupación (R1), ranking (R3) y disponibilidad (R6).
 
 > **Jose David:** Tenemos seis reportes SQL. El de ocupación genera un calendario con `generate_series` y lo cruza con los rangos de alquiler. El de ingresos agrega los pagos antes del JOIN, para no multiplicar montos. El ranking usa la función de ventana `rank` particionada por categoría. Y el de disponibilidad reutiliza la misma función de la base, junto con un `NOT EXISTS` contra los mantenimientos. Los seis responden en menos de 20 milisegundos con los datos de prueba.
 
-### Escena 8 · Seguridad — 11:15 a 12:30 · David
+### Escena 8. Seguridad (11:15 a 12:30, David)
 
 **Pantalla:** T2. Ejecutar:
 
@@ -152,7 +152,7 @@ RESET ROLE;
 
 > **David:** En la aplicación, las contraseñas se guardan con BCrypt y las sesiones usan JWT de treinta minutos. El administrador asigna perfiles. Si cambia los permisos de alguien o esa persona cambia su contraseña, sus sesiones anteriores se revocan al instante.
 
-### Escena 9 · Pruebas, respaldos y equipo — 12:30 a 13:45 · Jose David
+### Escena 9. Pruebas, respaldos y equipo (12:30 a 13:45, Jose David)
 
 **Pantalla:** GitHub Actions, última ejecución de **SIRAV CI** en verde.
 
@@ -166,7 +166,7 @@ RESET ROLE;
 
 > **Jose David:** Trabajamos con Scrum en Jira y con ramas y pull requests en GitHub.
 
-### Escena 10 · Cierre — 13:45 a 14:30 · David y Jose David
+### Escena 10. Cierre (13:45 a 14:30, David y Jose David)
 
 **Pantalla:** el README o la portada.
 

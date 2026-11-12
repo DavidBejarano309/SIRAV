@@ -1,4 +1,4 @@
-# Plan y resultados de pruebas — SIRAV
+# Plan y resultados de pruebas
 
 Historias de Jira: **SIRAV-18** (exclusión y concurrencia), **SIRAV-33** (reservas simultáneas) y **SIRAV-34** (punta a punta). El informe completo de la auditoría en las tres VM está en [`docs/AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md). Las pruebas usan **PostgreSQL y MongoDB reales**, nunca bases simuladas en memoria: las restricciones GiST, los triggers y las excepciones SR solo existen en el motor real.
 
@@ -6,11 +6,11 @@ Historias de Jira: **SIRAV-18** (exclusión y concurrencia), **SIRAV-33** (reser
 
 | Nivel | Herramienta | Dónde | Cuándo se ejecuta |
 |---|---|---|---|
-| Integración y auditoría del backend | JUnit 5 + Spring Boot Test contra PostgreSQL y MongoDB reales: `IntegrationTest` (15), `SqlAuditTest` (24), `ConcurrencyAuditTest` (11), `MongoAuditTest` (11), `ApiAuditTest` (8) y `AccessTest` (3) | `backend/src/test/java/co/edu/sirav/` | Cada push (**SIRAV CI**, sobre una base `sirav_audit_*` nueva) y en las VM (`scripts/test-vm-audit.ps1`) |
-| Interfaz (componentes) | Vitest + Testing Library | `frontend/src/views/Auth.test.jsx` | Cada push, workflow **SIRAV CI** |
+| Integración y auditoría del backend | JUnit 5 + Spring Boot Test contra PostgreSQL y MongoDB reales: `IntegrationTest` (15), `SqlAuditTest` (24), `ConcurrencyAuditTest` (11), `MongoAuditTest` (11), `ApiAuditTest` (8) y `AccessTest` (3) | `backend/src/test/java/co/edu/sirav/` | Cada push (SIRAV CI, sobre una base `sirav_audit_*` nueva) y en las VM (`scripts/test-vm-audit.ps1`) |
+| Interfaz (componentes) | Vitest + Testing Library | `frontend/src/views/Auth.test.jsx` | Cada push, workflow SIRAV CI |
 | Navegador (punta a punta) | Playwright | `frontend/e2e/` | Manual, con la aplicación en marcha (`npm run test:e2e`) |
 | Despliegue | Docker Compose + `scripts/verificar-despliegue.sh` | `.github/workflows/despliegue.yml` | Cada push que toque código, bases, scripts o Compose |
-| Excepciones con nombre | `database/postgres/pruebas-excepciones.sql`: provoca cada error y comprueba su SQLSTATE (SR001 a SR008) y su nombre `e_` | `database/postgres/` | Cada push (**SIRAV CI**) |
+| Excepciones con nombre | `database/postgres/pruebas-excepciones.sql`: provoca cada error y comprueba su SQLSTATE (SR001 a SR008) y su nombre `e_` | `database/postgres/` | Cada push (SIRAV CI) |
 | Base de datos | Prueba de humo SQL sobre los scripts cargados | Sección 4 | Al modificar `database/postgres/` |
 
 ## 2. Casos y requerimientos
@@ -19,7 +19,7 @@ Historias de Jira: **SIRAV-18** (exclusión y concurrencia), **SIRAV-33** (reser
 |---|---|---|
 | `authEnforcesRolesAndRevokesSessions` | Cada perfil solo accede a lo suyo; tras el logout, el token anterior se rechaza (`token_version`) | RF-01, RNF-02 |
 | `lifecyclePersistsInspectionAndSimulatedPayment` | Reserva idempotente, confirmación, entrega y devolución con inspecciones; pago SIMULADO; la devolución inválida no deja pago parcial | RF-03, RF-04, RF-05, RF-06 |
-| `concurrentReservationsHaveExactlyOneWinner` | Dos hilos reservan el mismo vehículo y fechas a la vez: exactamente uno obtiene 201 y el otro 409 | **RNF-01**, RN-01 |
+| `concurrentReservationsHaveExactlyOneWinner` | Dos hilos reservan el mismo vehículo y fechas a la vez: exactamente uno obtiene 201 y el otro 409 | RNF-01, RN-01 |
 | `allSixSqlReportsExecuteAgainstRealDatabase` | Los seis reportes R1 a R6 se ejecutan y devuelven columnas | RF-07 |
 | `applicationRoleCannotWriteReservationsDirectly` | El usuario `sirav_app` no puede hacer `INSERT` directo en `reserva` | RNF-02 |
 | `registeredClientUsesUserIdentityWithoutDuplicatingIt` | El registro no copia nombre ni correo en `cliente`; la vista los toma de `usuario`; la restricción rechaza copiarlos | 3FN |
@@ -62,9 +62,9 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 
 | Ejecución | Fecha | Resultado |
 |---|---|---|
-| **SIRAV CI** ([run 43146222697](https://github.com/DavidBejarano309/SIRAV/actions/runs/43146222697)) | 11 nov 2026, 22:09 (Bogotá) | **72 pruebas de Java, 0 fallos**: Integration 15, SqlAudit 24, ConcurrencyAudit 11, MongoAudit 11, ApiAudit 8 y Access 3. Excepciones SR001 a SR008: 8 de 8. Frontend: Vitest y build correctos |
-| **Auditoría en las tres VM** (`AUDITORIA-FUNCIONAL-VM.md`) | 10 y 11 nov 2026 | **81 pruebas aprobadas**: 72 de Java, 5 de interfaz y 4 flujos Playwright en SIRAV-Web; 64 solicitudes HTTP concurrentes. Cobertura JaCoCo de 85,8 % de líneas y 64,6 % de ramas. 7 fallos encontrados y corregidos |
-| **SIRAV despliegue Docker** ([run 43147733559](https://github.com/DavidBejarano309/SIRAV/actions/runs/43147733559)) | 11 nov 2026, 22:22 (Bogotá) | 16 de 16 comprobaciones de `verificar-despliegue.sh`, incluidas las fotos de evidencia; respaldo restaurado con conteos iguales (12 reservas, 22 inspecciones); datos conservados tras el reinicio (`docs/evidencias/despliegue-docker.txt`) |
+| SIRAV CI ([run 43146222697](https://github.com/DavidBejarano309/SIRAV/actions/runs/43146222697)) | 11 nov 2026, 22:09 (Bogotá) | 72 pruebas de Java, 0 fallos: Integration 15, SqlAudit 24, ConcurrencyAudit 11, MongoAudit 11, ApiAudit 8 y Access 3. Excepciones SR001 a SR008: 8 de 8. Frontend: Vitest y build correctos |
+| Auditoría en las tres VM (`AUDITORIA-FUNCIONAL-VM.md`) | 10 y 11 nov 2026 | 81 pruebas aprobadas: 72 de Java, 5 de interfaz y 4 flujos Playwright en SIRAV-Web; 64 solicitudes HTTP concurrentes. Cobertura JaCoCo de 85,8 % de líneas y 64,6 % de ramas. 7 fallos encontrados y corregidos |
+| SIRAV despliegue Docker ([run 43147733559](https://github.com/DavidBejarano309/SIRAV/actions/runs/43147733559)) | 11 nov 2026, 22:22 (Bogotá) | 16 de 16 comprobaciones de `verificar-despliegue.sh`, incluidas las fotos de evidencia; respaldo restaurado con conteos iguales (12 reservas, 22 inspecciones); datos conservados tras el reinicio (`docs/evidencias/despliegue-docker.txt`) |
 | Playwright en Edge (equipo local) | 8 nov 2026 | 3 de 3 aprobadas (`docs/evidencias/3fn-resultados.txt`); en la auditoría de las VM, 4 de 4 |
 | Prueba de humo de la base | 11 nov 2026 | 11 de 11 casos con el resultado esperado (sección 4) |
 
@@ -72,10 +72,10 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 
 | Error | Cómo se detectó | Corrección |
 |---|---|---|
-| El usuario `sirav_app` de MongoDB tenía permisos sobre la base `sirav` y no sobre `sirav_3fn`: el backend no arrancaba | Primera ejecución de **SIRAV CI** (`Unauthorized` al crear índices) | `database/mongo/init.js` |
-| Entre las 19:00 y la medianoche de Bogotá las pruebas reservaban "mañana" y la entrega se rechazaba | **SIRAV CI** ejecutado a las 19:00 (el runner está en UTC) | Las pruebas usan la fecha de America/Bogota |
+| El usuario `sirav_app` de MongoDB tenía permisos sobre la base `sirav` y no sobre `sirav_3fn`: el backend no arrancaba | Primera ejecución de SIRAV CI (`Unauthorized` al crear índices) | `database/mongo/init.js` |
+| Entre las 19:00 y la medianoche de Bogotá las pruebas reservaban "mañana" y la entrega se rechazaba | SIRAV CI ejecutado a las 19:00 (el runner está en UTC) | Las pruebas usan la fecha de America/Bogota |
 | Los errores de negocio no tenían nombre ni código propio | Revisión contra la propuesta (sección 6.4) | Excepciones SR001–SR007 con su nombre `e_` |
-| Las pruebas de auditoría se ejecutaban en cualquier `mvn verify`, porque la condición `SIRAV_AUDIT` de la clase abstracta `AuditSupport` no se hereda. Eso rompía la construcción de la imagen Docker del backend | Workflow **SIRAV despliegue Docker** | Condición declarada en cada clase de auditoría |
+| Las pruebas de auditoría se ejecutaban en cualquier `mvn verify`, porque la condición `SIRAV_AUDIT` de la clase abstracta `AuditSupport` no se hereda. Eso rompía la construcción de la imagen Docker del backend | Workflow SIRAV despliegue Docker | Condición declarada en cada clase de auditoría |
 | Siete casos de la auditoría en las VM: cancelación con motivo nulo; reserva concurrente con cierre de tarifa; usuario o permisos con rol nulo; daño nulo en la inspección; cerrar tarifa sin fecha o cambiar mantenimiento sin estado (respondían 500) | Auditoría del 10 y 11 de noviembre | `07-concurrency-validation.sql` y validaciones en `UserController`, `RentalService` y `CatalogController` (detalle en `AUDITORIA-FUNCIONAL-VM.md`) |
 
 ## 7. Limitaciones

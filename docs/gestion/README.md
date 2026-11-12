@@ -1,4 +1,4 @@
-# Documento de gestión del proyecto — SIRAV
+# Documento de gestión del proyecto
 
 Historia de Jira: **SIRAV-10**. Es el documento que anuncian las secciones 7.3 y 7.5 de la propuesta: cronograma (Gantt), matriz gráfica de riesgos, roles y metodología.
 
@@ -21,10 +21,10 @@ Metodología **híbrida**, tal como se justifica en la propuesta (7.1):
 
 | Sprint | Fechas del plan | Meta | Hito |
 |---|---|---|---|
-| 1 | 18 al 24 oct | Propuesta, gestión, modelos E-R y relacional, diccionario, selección de SO y RDBMS, VM | **H1** Modelado cerrado y entorno inicial listo |
-| 2 | 25 al 31 oct | Scripts de PostgreSQL, restricción RN-01, reportes SQL y modelo documental | **H2** Base relacional probada y Fase 1 completa |
-| 3 | 1 al 7 nov | MongoDB, aplicación Spring Boot con catálogo, reservas y alquileres | **H3** Versión web integrada |
-| 4 | 8 al 14 nov | Pruebas, roles, guía de la VM, informe y video | **H4** Prototipo verificable y entrega final |
+| 1 | 18 al 24 oct | Propuesta, gestión, modelos E-R y relacional, diccionario, selección de SO y RDBMS, VM | H1 Modelado cerrado y entorno inicial listo |
+| 2 | 25 al 31 oct | Scripts de PostgreSQL, restricción RN-01, reportes SQL y modelo documental | H2 Base relacional probada y Fase 1 completa |
+| 3 | 1 al 7 nov | MongoDB, aplicación Spring Boot con catálogo, reservas y alquileres | H3 Versión web integrada |
+| 4 | 8 al 14 nov | Pruebas, roles, guía de la VM, informe y video | H4 Prototipo verificable y entrega final |
 
 Las fechas son las del plan de la propuesta (4 semanas desde el 18 de octubre). La propuesta indica que las fechas oficiales de cada fase se ajustan al calendario del curso.
 

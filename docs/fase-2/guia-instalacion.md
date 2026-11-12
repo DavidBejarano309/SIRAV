@@ -1,15 +1,15 @@
-# Guía de instalación, puertos, arranque y respaldos — SIRAV
+# Guía de instalación, puertos, arranque y respaldos
 
 Historias de Jira: **SIRAV-15** (VM con Ubuntu Server) y **SIRAV-35** (instalación, puertos, arranque y copias de respaldo). La justificación del sistema operativo y de los motores está en [`seleccion-so-rdbms.md`](seleccion-so-rdbms.md).
 
 SIRAV tiene dos formas de instalación:
 
-| | **A. Tres VM en VirtualBox** (despliegue del equipo) | **B. Una VM con Docker Compose** (alternativa) |
+| | A. Tres VM en VirtualBox (despliegue del equipo) | B. Una VM con Docker Compose (alternativa) |
 |---|---|---|
 | Máquinas | SIRAV-PostgreSQL, SIRAV-MongoDB y SIRAV-Web, cada una con Ubuntu Server 24.04, 2 GB y 2 CPU | Una VM Ubuntu Server 24.04 con 4 a 6 GB |
 | Motores | PostgreSQL 17.6 y MongoDB 8.0.5 en contenedores, cada uno en su VM | Los cuatro servicios en contenedores de la misma VM |
 | Aplicación | Nginx + React y la API Java como servicio systemd en SIRAV-Web | Contenedores `frontend` (nginx) y `backend` |
-| Estado | **Implementado** el 10 y 11 de noviembre de 2026 y auditado ([`AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md)) | Verificado automáticamente en cada cambio ([`despliegue.yml`](../../.github/workflows/despliegue.yml), sección 9) |
+| Estado | Implementado el 10 y 11 de noviembre de 2026 y auditado ([`AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md)) | Verificado automáticamente en cada cambio ([`despliegue.yml`](../../.github/workflows/despliegue.yml), sección 9) |
 
 ## A. Despliegue en tres máquinas virtuales (implementado)
 
@@ -187,7 +187,7 @@ La primera vez tarda varios minutos, porque construye el backend (Maven) y el fr
 
 | Servicio | Puerto en el contenedor | Publicado en la VM | Acceso |
 |---|---|---|---|
-| frontend (nginx) | 80 | **8088** | Navegador. nginx reenvía `/api/` y `/actuator/health` al backend |
+| frontend (nginx) | 80 | 8088 | Navegador. nginx reenvía `/api/` y `/actuator/health` al backend |
 | backend (Spring Boot) | 8080 | No | Solo desde nginx, por la red interna de Docker |
 | postgres | 5432 | No | Solo backend y administración con `docker compose exec` |
 | mongo | 27017 | No | Solo backend y administración con `docker compose exec` |
@@ -241,7 +241,7 @@ Cuentas de demostración: `admin@sirav.local`, `operador@sirav.local` y `cliente
 | Actualizar a una versión nueva del repositorio | `git pull && docker compose -f compose.yaml -f compose.vm.yaml up --build -d` |
 | Consola SQL | `docker compose exec postgres psql -U sirav_owner -d sirav_3fn` |
 | Consola MongoDB | `docker compose exec mongo sh -c 'mongosh -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin sirav_3fn'` |
-| **Borrar todo, incluidos los datos** | `docker compose down -v` (irreversible) |
+| Borrar todo, incluidos los datos | `docker compose down -v` (irreversible) |
 
 **Arranque automático.**
 
@@ -296,7 +296,7 @@ Ejecución del 11 de noviembre de 2026 a las 22:22, hora de Bogotá ([run 431477
 | Paso | Resultado |
 |---|---|
 | Construcción y arranque con `compose.vm.yaml` | Cuatro servicios en marcha; solo `frontend` publica un puerto (`0.0.0.0:8088->80`) |
-| `verificar-despliegue.sh` | **16 de 16** comprobaciones correctas. Incluye la reserva solapada rechazada con 409, la subida y descarga de las fotos de entrega y devolución, el pago `SIMULADO APROBADO`, la auditoría `SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA`, las inspecciones en MongoDB y los seis reportes |
+| `verificar-despliegue.sh` | 16 de 16 comprobaciones correctas. Incluye la reserva solapada rechazada con 409, la subida y descarga de las fotos de entrega y devolución, el pago `SIMULADO APROBADO`, la auditoría `SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA`, las inspecciones en MongoDB y los seis reportes |
 | `backup.sh` | `postgres.dump`, `mongodb.archive.gz` y `evidencias.tar.gz`, con permisos 600 |
 | Restauración en bases nuevas | PostgreSQL: 12 reservas, 11 alquileres y 11 pagos, igual que el original (incluye el historial de demostración). MongoDB: 22 inspecciones y 17 eventos, igual que el original |
 | `docker compose restart` | La aplicación vuelve a responder y conserva los datos |
