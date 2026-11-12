@@ -66,7 +66,7 @@ database/               esquema, procedimientos y configuración MongoDB
 
 Los procedimientos `sp_crear_reserva`, `sp_confirmar_reserva`, `sp_cancelar_reserva`, `sp_iniciar_alquiler` y `sp_cerrar_alquiler` concentran las operaciones transaccionales. Los scripts adicionales al esquema agregan reglas de negocio, índices y una tabla técnica outbox para sincronizar MongoDB sin perder inspecciones. Esa tabla no es una nueva entidad de dominio.
 
-El contrato REST está en http://localhost:8080/swagger-ui.html. Las consultas SQL están en `backend/src/main/resources/sql/reports/`.
+El contrato REST está en http://localhost:8080/swagger-ui.html cuando el backend se ejecuta localmente (en Docker el puerto 8080 no se publica). Las consultas SQL están en `backend/src/main/resources/sql/reports/`.
 
 ## Pruebas
 
@@ -78,14 +78,15 @@ npm run test:e2e
 
 Las pruebas de backend usan `sirav_3fn_test`; las de navegador requieren la aplicación iniciada y generan datos de demostración. Las pruebas unitarias se ejecutan con `mvn -f backend/pom.xml test` y `npm --prefix frontend test`.
 
-## Documentación vigente
+## Documentación de la entrega final
 
-- [Cambios y compatibilidad 3FN](docs/CAMBIOS-3FN.md)
-- [Arquitectura](docs/ARQUITECTURA.md)
-- [Diccionario de datos](docs/DICCIONARIO.md)
-- [Modelo de datos](docs/MODELOS.md)
-- [Manual de uso](docs/MANUAL.md)
-- [Pruebas](docs/PRUEBAS.md)
-- [Requisitos conservados](docs/REQUISITOS.md)
+| Fase | Documento |
+|---|---|
+| Fase 1 | [Propuesta v1.2](docs/fase-1/SIRAV_Propuesta.docx) · [Supuestos](docs/fase-1/supuestos.md) · [Requerimientos y trazabilidad](docs/fase-1/requerimientos.md) · [Matriz de riesgos](docs/fase-1/matriz-riesgos.md) · [Diccionario de datos y 3FN](docs/fase-1/diccionario-datos.md) · [Reportes SQL R1–R6](docs/fase-1/reportes-sql.md) |
+| Modelado | [Diagramas](docs/diagramas/): Chen, EER, Crow's Foot lógico y relacional, arquitectura, estados y modelo documental (fuentes `.dot`/`.mmd` en `docs/diagramas/fuentes/`) |
+| Gestión | [Metodología, Gantt, RACI y seguimiento](docs/gestion/README.md) |
+| Fase 2 | [Selección de SO y RDBMS](docs/fase-2/seleccion-so-rdbms.md) · [Guía de instalación, puertos, arranque y respaldos](docs/fase-2/guia-instalacion.md) · [Modelo documental MongoDB](docs/fase-2/modelo-documental-mongodb.md) · [Pruebas](docs/fase-2/pruebas.md) |
+| Cierre | [Informe ejecutivo](docs/cierre/SIRAV_Informe_Ejecutivo.pdf) · [Guion del video](docs/cierre/guion-video.md) |
+| Aplicación | [Arquitectura](docs/ARQUITECTURA.md) · [Manual de uso](docs/MANUAL.md) · [Cambios 3FN](docs/CAMBIOS-3FN.md) · [Funciones conservadas](docs/REQUISITOS.md) |
 
-El paquete `SIRAV-3FN-sencillo.zip` contiene los documentos vigentes. El ZIP e informe ejecutivo de octubre corresponden a la versión anterior. La VM Linux, el video y la participación del equipo siguen requiriendo evidencias reales de los estudiantes.
+**Despliegue en la VM:** `bash scripts/configure.sh` y `docker compose -f compose.yaml -f compose.vm.yaml up --build -d`; verificación con `bash scripts/verificar-despliegue.sh` (ver la guía).

@@ -1,5 +1,7 @@
 # Pruebas de la versión 3FN
 
+> El plan de pruebas completo, con la trazabilidad a requerimientos y los resultados de la integración continua y del despliegue Docker, está en [`fase-2/pruebas.md`](fase-2/pruebas.md). Este archivo describe la ejecución local en Windows.
+
 Las pruebas integrales usan PostgreSQL y MongoDB reales en la base aislada sirav_3fn_test. La aplicación normal utiliza sirav_3fn; la versión anterior utilizaba sirav y no se modifica.
 
 ## Ejecución local
@@ -30,4 +32,4 @@ El script de pruebas configura credenciales locales de demostración, inicializa
 
 Los resultados de la ejecución actual se guardan en docs/evidencias/3fn-resultados.txt. Los resúmenes Surefire son regenerables desde backend/target/surefire-reports. Las capturas 3fn-*.png proceden de la versión simplificada; las anteriores no se incluyen en el ZIP nuevo.
 
-Docker Compose y la VM Linux necesitan verificarse en un entorno con Docker. Esta entrega no afirma haber creado una VM ni grabado el video.
+El despliegue con Docker Compose se verifica automáticamente en Ubuntu 24.04 (workflow `despliegue.yml`, evidencia en `docs/evidencias/despliegue-docker.txt`). Falta repetirlo en la VM del equipo y grabar el video.

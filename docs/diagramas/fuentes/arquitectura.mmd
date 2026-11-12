@@ -1,7 +1,7 @@
 flowchart TB
   U(("Cliente · Operador · Administrador"))
   subgraph VM["Máquina virtual · Ubuntu Server 24.04 LTS · Docker Compose"]
-    UI["<b>frontend</b> · React 19 + Vite<br/>nginx publica 127.0.0.1:8088"]
+    UI["<b>frontend</b> · React 19 + Vite<br/>nginx · puerto 8088"]
     API["<b>backend</b> · Spring Boot 3.5 · Java 21<br/>JWT HS256 · BCrypt · JdbcTemplate"]
     subgraph PGS["<b>postgres</b> · PostgreSQL 17 · base sirav_3fn"]
       SP["Procedimientos sp_* · funciones fn_* · triggers trg_*<br/>excepciones SR001–SR007"]

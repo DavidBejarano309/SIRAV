@@ -1,0 +1,21 @@
+digraph A {
+  graph [layout=neato, splines=true, pad=0.15, outputorder=edgesfirst];
+  node [shape=box, style="rounded,filled", fillcolor="#eef3f8", color="#2f5d7c", fontname="Helvetica", fontsize=20, margin="0.1,0.05", pin=true];
+  edge [color="#4a6584", fontname="Helvetica", fontsize=17, fontcolor="#1f3a5f", arrowsize=0.7];
+  U  [pos="0,4.2!",   label="Navegador", shape=ellipse, fillcolor="#ffffff"];
+  F  [pos="4.6,4.2!", label="frontend\nReact 19 · nginx :8088"];
+  B  [pos="9.4,4.2!", label="backend\nSpring Boot 3.5 · JWT"];
+  I  [pos="4.6,0!", label="MongoDB 8
+inspecciones_vehiculo
+bitacora_operaciones", shape=cylinder, fillcolor="#e5f3ec", color="#3c8a6e"];
+  SP [pos="4.6,2.1!",   label="PostgreSQL 17\nprocedimientos sp_\nfunciones fn_ · triggers trg_"];
+  T  [pos="9.4,2.1!",   label="PostgreSQL 17\n13 tablas 3FN + evento_outbox", shape=cylinder, fillcolor="#dce7d3", color="#526d50"];
+  P  [pos="9.4,0!",   label="OutboxPublisher\nreintento · idempotente"];
+  U -> F; F -> B [label="REST /api"];
+  B -> SP [label="CALL sp_* (sirav_app)  "];
+  SP -> T;
+  B -> T [style=dashed, label="reportes R1–R6"];
+  T -> P;
+  P -> I;
+  B -> I [style=dashed];
+}

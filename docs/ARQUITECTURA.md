@@ -1,5 +1,7 @@
 # Arquitectura simplificada
 
+![Arquitectura de despliegue](diagramas/SIRAV_arquitectura.png)
+
 React consume una API Spring Boot. PostgreSQL conserva las 13 entidades y ejecuta los procedimientos, funciones y triggers. MongoDB conserva inspecciones con listas de daños/evidencias y la bitácora de cambios de estado.
 
 ```mermaid

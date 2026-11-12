@@ -1,0 +1,43 @@
+SIRAV — Evidencia de despliegue Docker (workflow "SIRAV despliegue Docker")
+Ejecución: https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722316
+Fecha: 2026-11-12 00:05–00:07 UTC (11 de noviembre, 19:05–19:07 hora de Bogotá)
+
+Docker version 28.0.4, build b8034c0
+Docker Compose version v2.38.2
+Ubuntu 24.04.5 LTS
+
+--- 5. scripts/verificar-despliegue.sh
+== SIRAV: verificación del despliegue en http://localhost:8088
+  [OK] backend en línea (actuator/health = UP)
+  [OK] inicio de sesión con JWT (operador@sirav.local)
+  [OK] catálogo: vehículo 1 libre de 2026-11-11 a 2026-11-13; cliente 1
+  [OK] sp_crear_reserva: reserva 1 SOLICITADA, costo base 240000.0
+  [OK] reserva solapada rechazada con HTTP 409: El vehículo no está disponible en esas fechas
+  [OK] sp_confirmar_reserva: CONFIRMADA
+  [OK] sp_iniciar_alquiler: alquiler 1 ACTIVA con inspección de entrega
+  [OK] sp_cerrar_alquiler: estado CERRADA, pagado 240000.0
+  [OK] pago registrado: SIMULADO APROBADO 240000.0
+  [OK] auditoría (trg_auditar_reserva): SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA
+  [OK] MongoDB: 2 inspecciones publicadas por el outbox
+  [OK] MongoDB: consulta de daños ALTA ($elemMatch) devuelve resultados
+  [OK] MongoDB: 3 agregaciones (por categoría, zonas por mes, incidencias por vehículo)
+  [OK] reportes SQL R1-R6 ejecutados
+== Verificación completa: todo correcto
+
+--- 6. Puertos publicados (solo la interfaz web)
+frontend 0.0.0.0:8088->80/tcp, [::]:8088->80/tcp
+
+--- 7. scripts/backup.sh
+Respaldos guardados en backups/20261112-000719
+-rw------- 1 runner runner   1189 Nov 12 00:07 mongodb.archive.gz
+-rw------- 1 runner runner 142394 Nov 12 00:07 postgres.dump
+
+--- 8. Restauración en bases de prueba (reservas|alquileres|pagos y documentos de MongoDB)
+sirav_3fn|1|1|1
+sirav_restaurada|1|1|1
+sirav_3fn 2 4
+sirav_restaurada 2 4
+(MongoDB: inspecciones bitácora; la restauración coincide con el original)
+
+--- 9. Tras docker compose restart
+reservas tras reinicio: 1
