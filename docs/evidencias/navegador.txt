@@ -1,0 +1,15 @@
+SIRAV - Resultados de pruebas de navegador
+Fecha: 21 de octubre de 2026, America/Bogota
+Motor: Microsoft Edge mediante Playwright
+
+operation.spec.js
+  administrador navega por todos los módulos conectados: PASS
+  cliente tiene acceso a sus reservas y diseño móvil sin desbordamiento: PASS
+  Resultado de ejecución: 2 passed (11.8s)
+
+lifecycle.spec.js
+  reserva, confirmación, entrega y devolución desde los formularios: PASS
+  Resultado de ejecución: 1 passed (8.2s)
+
+Las capturas de escritorio y móvil proceden de estas ejecuciones locales.
+No corresponden a una máquina virtual Linux.

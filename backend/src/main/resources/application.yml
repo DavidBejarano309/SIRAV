@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: sirav
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sirav_3fn}
+    username: ${DB_USER:sirav_app}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 10000
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://sirav_app:${MONGO_PASSWORD}@localhost:27017/sirav_3fn?authSource=sirav_3fn}
+      auto-index-creation: true
+  jackson:
+    time-zone: America/Bogota
+  mvc:
+    problemdetails:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+sirav:
+  jwt-secret: ${JWT_SECRET}
+  token-minutes: 30
+  cors-origin: ${CORS_ORIGIN:http://localhost:5173,http://127.0.0.1:5173}
+  seed-demo: ${SEED_DEMO:false}
+  demo-password: ${DEMO_PASSWORD:}
+  evidence-directory: ${EVIDENCE_DIRECTORY:.runtime/evidencias}
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,9 @@
+Fecha: 2026-11-09
+Entorno local Windows; HTTP completo, no medición de VM ni benchmark de carga.
+occupancy : 16 ms; 50 filas
+revenue : 12 ms; 4 filas
+ranking : 14 ms; 25 filas
+clients : 11 ms; 3 filas
+late : 9 ms; 5 filas
+availability : 10 ms; 25 filas
+mongo : 17 ms; 10 filas
