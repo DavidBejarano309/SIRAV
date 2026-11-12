@@ -45,13 +45,27 @@ ok "reserva solapada rechazada con HTTP 409: $(json "d['detail']" < /tmp/sirav_r
 curl -fsS -X POST "${AUTH[@]}" "$BASE/api/reservations/$RES/confirm" >/dev/null || falla "confirmar"
 ok "sp_confirmar_reserva: CONFIRMADA"
 
-entrega() { printf '{"kilometraje":%s,"combustible":%s,"inspeccion":{"danos":%s,"evidencias":["foto-%s.jpg"],"observaciones":"%s"}}' "$1" "$2" "$3" "$4" "$5"; }
+# Imagen PNG de prueba (8x8 px) generada en el momento: la API solo acepta evidencias subidas por ella.
+IMG=$(mktemp --suffix=.png)
+python3 -c "import zlib,struct,sys
+def c(t,d): return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+raw=b''.join(b'\\x00'+b'\\xcc\\x22\\x22'*8 for _ in range(8))
+sys.stdout.buffer.write(b'\\x89PNG\\r\\n\\x1a\\n'+c(b'IHDR',struct.pack('>IIBBBBB',8,8,8,2,0,0,0))+c(b'IDAT',zlib.compress(raw))+c(b'IEND',b''))" > "$IMG"
+subir() { curl -fsS -X POST "${AUTH[@]}" -F "file=@$IMG;type=image/png" "$BASE/api/$1/evidence" | json "d['referencia']"; }
+REF1=$(subir "reservations/$RES") || falla "subir la foto de entrega"
+ok "foto de entrega subida: $REF1"
+
+entrega() { printf '{"kilometraje":%s,"combustible":%s,"inspeccion":{"danos":%s,"evidencias":["%s"],"observaciones":"%s"}}' "$1" "$2" "$3" "$4" "$5"; }
 ALQ=$(curl -fsS -X POST "${AUTH[@]}" -H 'Content-Type: application/json' "$BASE/api/reservations/$RES/start" \
-  -d "$(entrega "$KM" 100 '[]' entrega 'Verificación de despliegue')" | json "d['id_alquiler']") || falla "entrega"
+  -d "$(entrega "$KM" 100 '[]' "$REF1" 'Verificación de despliegue')" | json "d['id_alquiler']") || falla "entrega"
 ok "sp_iniciar_alquiler: alquiler $ALQ ACTIVA con inspección de entrega"
 
+REF2=$(subir "rentals/$ALQ") || falla "subir la foto de devolución"
 CIERRE=$(curl -fsS -X POST "${AUTH[@]}" -H 'Content-Type: application/json' "$BASE/api/rentals/$ALQ/close" \
-  -d "$(entrega $((KM + 120)) 80 '[{"zona":"Puerta trasera","severidad":"ALTA","descripcion":"Rayón de prueba"}]' devolucion 'Cierre de verificación')") || falla "devolución"
+  -d "$(entrega $((KM + 120)) 80 '[{"zona":"Puerta trasera","severidad":"ALTA","descripcion":"Rayón de prueba"}]' "$REF2" 'Cierre de verificación')") || falla "devolución"
+TIPO=$(curl -fsS -o /dev/null -w '%{content_type}' "${AUTH[@]}" "$BASE$REF2") || falla "descargar la foto"
+ok "foto de devolución subida y descargada ($TIPO)"
+rm -f "$IMG"
 ok "sp_cerrar_alquiler: estado $(echo "$CIERRE" | json "d['estado_alquiler']"), pagado $(echo "$CIERRE" | json "d['pagado']")"
 
 PAGO=$(curl -fsS "${AUTH[@]}" "$BASE/api/rentals/$ALQ/payments" | json "d['pagos'][0]['tipo']+' '+d['pagos'][0]['estado']+' '+str(d['pagos'][0]['monto'])") || falla "pago simulado"

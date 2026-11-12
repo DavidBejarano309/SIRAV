@@ -75,6 +75,7 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 | El usuario `sirav_app` de MongoDB tenía permisos sobre la base `sirav` y no sobre `sirav_3fn`: el backend no arrancaba | Primera ejecución de **SIRAV CI** (`Unauthorized` al crear índices) | `database/mongo/init.js` |
 | Entre las 19:00 y la medianoche de Bogotá las pruebas reservaban "mañana" y la entrega se rechazaba | **SIRAV CI** ejecutado a las 19:00 (el runner está en UTC) | Las pruebas usan la fecha de America/Bogota |
 | Los errores de negocio no tenían nombre ni código propio | Revisión contra la propuesta (sección 6.4) | Excepciones SR001–SR007 con su nombre `e_` |
+| Las pruebas de auditoría se ejecutaban en cualquier `mvn verify`, porque la condición `SIRAV_AUDIT` de la clase abstracta `AuditSupport` no se hereda. Eso rompía la construcción de la imagen Docker del backend | Workflow **SIRAV despliegue Docker** | Condición declarada en cada clase de auditoría |
 | Siete casos de la auditoría en las VM: cancelación con motivo nulo; reserva concurrente con cierre de tarifa; usuario o permisos con rol nulo; daño nulo en la inspección; cerrar tarifa sin fecha o cambiar mantenimiento sin estado (respondían 500) | Auditoría del 10 y 11 de noviembre | `07-concurrency-validation.sql` y validaciones en `UserController`, `RentalService` y `CatalogController` (detalle en `AUDITORIA-FUNCIONAL-VM.md`) |
 
 ## 7. Limitaciones

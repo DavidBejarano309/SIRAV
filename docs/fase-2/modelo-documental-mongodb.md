@@ -29,7 +29,7 @@ Documento de ejemplo (devolución corregida una vez):
   "kilometraje": 15320, "combustible": 80,
   "actor": 2, "fecha": { "$date": "2026-11-11T15:42:00Z" },
   "danos": [ { "zona": "Puerta trasera", "severidad": "ALTA", "descripcion": "Rayón de 20 cm" } ],
-  "evidencias": [ "3f2a9c1e-5b7d-4e8a-9c61-2d4f8b7a1e90.jpg" ],
+  "evidencias": [ "/api/reservations/12/evidence/3f2a9c1e-5b7d-4e8a-9c61-2d4f8b7a1e90.jpg" ],
   "observaciones": "Cliente informa el rayón al devolver",
   "anulada": false,
   "version": 1,
@@ -47,7 +47,7 @@ Documento de ejemplo (devolución corregida una vez):
 | `kilometraje`, `combustible` | number | procedimiento | Lectura del odómetro y porcentaje del tanque en ese momento |
 | `actor`, `fecha` | long, date | procedimiento | Usuario que hizo la inspección y momento |
 | `danos[]` | array de subdocumentos | operador | 0 a 50 daños: `zona` (≤ 60), `severidad` (BAJA, MEDIA o ALTA) y `descripcion` (≤ 500) |
-| `evidencias[]` | array de strings | operador | 0 a 10 nombres de foto (`<uuid>.png` o `.jpg`). Las imágenes se suben con `POST /api/rentals/{id}/evidence` (PNG o JPEG, máximo 5 MB, tipo verificado por su firma) y se guardan en disco: `/opt/sirav/evidencias` en la VM web o el volumen `evidence_data` en Docker, nunca dentro de las bases |
+| `evidencias[]` | array de strings | operador | 0 a 10 referencias del tipo `/api/reservations/<id>/evidence/<uuid>.jpg`. Las imágenes se suben antes con `POST /api/reservations/{id}/evidence` o `/api/rentals/{id}/evidence` (PNG o JPEG, máximo 5 MB, tipo verificado por su firma). La API solo acepta referencias de imágenes subidas para esa misma reserva. Los archivos se guardan en disco (`/opt/sirav/evidencias` en la VM web o el volumen `evidence_data` en Docker), nunca dentro de las bases |
 | `observaciones` | string | operador | Hasta 2000 caracteres |
 | `version` | int | aplicación | Empieza en 0 y aumenta con cada corrección o anulación (control optimista) |
 | `historial[]` | array de subdocumentos | aplicación | Versión anterior de daños, evidencias y observaciones en cada corrección |
