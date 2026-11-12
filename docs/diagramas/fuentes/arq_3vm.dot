@@ -1,0 +1,26 @@
+digraph A {
+  graph [layout=neato, splines=true, pad=0.2, outputorder=edgesfirst];
+  node [shape=plaintext, fontname="Helvetica", fontsize=17, pin=true];
+  edge [color="#4a6584", fontname="Helvetica", fontsize=14, fontcolor="#1f3a5f", arrowsize=0.8, penwidth=1.4];
+  U [pos="-0.6,3!", shape=ellipse, style=filled, fillcolor="#ffffff", color="#2f5d7c", label="Navegador\n(PC o celular en la red local)"];
+  W [pos="7,3!", label=<<TABLE BORDER="1" COLOR="#2f5d7c" CELLBORDER="0" CELLPADDING="5" BGCOLOR="#eef3f8">
+    <TR><TD BGCOLOR="#1f3a5f"><FONT COLOR="white"><B>VM SIRAV-Web</B> · 192.168.56.23</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Ubuntu Server 24.04 · 2 GB · 2 CPU</TD></TR>
+    <TR><TD ALIGN="LEFT">Nginx :80 → React (compilado)</TD></TR>
+    <TR><TD ALIGN="LEFT">API Spring Boot · Java 21 (127.0.0.1:8080)</TD></TR>
+    <TR><TD ALIGN="LEFT">systemd sirav-api.service · evidencias</TD></TR></TABLE>>];
+  P [pos="3.6,0!", label=<<TABLE BORDER="1" COLOR="#526d50" CELLBORDER="0" CELLPADDING="5" BGCOLOR="#eef5ea">
+    <TR><TD BGCOLOR="#3f5e3c"><FONT COLOR="white"><B>VM SIRAV-PostgreSQL</B> · 192.168.56.21</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Ubuntu Server 24.04 · 2 GB · 2 CPU</TD></TR>
+    <TR><TD ALIGN="LEFT">PostgreSQL 17.6 (Docker) · sirav_3fn</TD></TR>
+    <TR><TD ALIGN="LEFT">13 tablas 3FN · sp_ fn_ trg_ · SR001–SR008</TD></TR></TABLE>>];
+  M [pos="10.4,0!", label=<<TABLE BORDER="1" COLOR="#3c8a6e" CELLBORDER="0" CELLPADDING="5" BGCOLOR="#e5f3ec">
+    <TR><TD BGCOLOR="#2b6b54"><FONT COLOR="white"><B>VM SIRAV-MongoDB</B> · 192.168.56.22</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Ubuntu Server 24.04 · 2 GB · 2 CPU</TD></TR>
+    <TR><TD ALIGN="LEFT">MongoDB 8.0.5 (Docker) · sirav_3fn</TD></TR>
+    <TR><TD ALIGN="LEFT">inspecciones_vehiculo · bitacora_operaciones</TD></TR></TABLE>>];
+  U -> W [label="HTTP :80\n(red local)"];
+  W -> P [label="JDBC :5432 · sirav_app\nCALL sp_*          "];
+  W -> M [label="          :27017 · sirav_app\n          outbox + CRUD"];
+  N [pos="7,-1.75!", fontsize=14, fontcolor="#55606b", label="Red solo-anfitrión 192.168.56.0/24 entre las VM · NAT para Internet y SSH (2221, 2222, 2223) · VirtualBox en Windows"];
+}

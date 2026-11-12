@@ -1,10 +1,102 @@
 # Guía de instalación, puertos, arranque y respaldos — SIRAV
 
-Historias de Jira: **SIRAV-15** (VM con Ubuntu Server) y **SIRAV-35** (instalación, puertos, arranque y copias de respaldo). La guía instala SIRAV completo en una máquina virtual **Ubuntu Server 24.04 LTS** con **Docker Compose**. La justificación de estas elecciones está en [`seleccion-so-rdbms.md`](seleccion-so-rdbms.md).
+Historias de Jira: **SIRAV-15** (VM con Ubuntu Server) y **SIRAV-35** (instalación, puertos, arranque y copias de respaldo). La justificación del sistema operativo y de los motores está en [`seleccion-so-rdbms.md`](seleccion-so-rdbms.md).
 
-> **Estado de verificación.** Los pasos 4 a 8 se ejecutan automáticamente en un Ubuntu 24.04 limpio en cada cambio, con el workflow [`despliegue.yml`](../../.github/workflows/despliegue.yml): construcción, arranque, verificación de punta a punta, respaldo, restauración y reinicio. El resultado está en la sección 9. La creación de la VM (pasos 1 a 3) la hace el equipo en su computador.
+SIRAV tiene dos formas de instalación:
 
-![Arquitectura del despliegue](../diagramas/SIRAV_arquitectura_compacta.png)
+| | **A. Tres VM en VirtualBox** (despliegue del equipo) | **B. Una VM con Docker Compose** (alternativa) |
+|---|---|---|
+| Máquinas | SIRAV-PostgreSQL, SIRAV-MongoDB y SIRAV-Web, cada una con Ubuntu Server 24.04, 2 GB y 2 CPU | Una VM Ubuntu Server 24.04 con 4 a 6 GB |
+| Motores | PostgreSQL 17.6 y MongoDB 8.0.5 en contenedores, cada uno en su VM | Los cuatro servicios en contenedores de la misma VM |
+| Aplicación | Nginx + React y la API Java como servicio systemd en SIRAV-Web | Contenedores `frontend` (nginx) y `backend` |
+| Estado | **Implementado** el 10 y 11 de noviembre de 2026 y auditado ([`AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md)) | Verificado automáticamente en cada cambio ([`despliegue.yml`](../../.github/workflows/despliegue.yml), sección 9) |
+
+## A. Despliegue en tres máquinas virtuales (implementado)
+
+![Arquitectura en tres VM](../diagramas/SIRAV_arquitectura_3VM.png)
+
+**Máquinas y red.**
+
+| VM | Dirección privada | Servicio | Acceso desde Windows (NAT) | SSH |
+|---|---|---|---|---|
+| SIRAV-PostgreSQL | 192.168.56.21 | PostgreSQL 17.6 en `:5432`, base `sirav_3fn` | `127.0.0.1:15432` | `127.0.0.1:2221` |
+| SIRAV-MongoDB | 192.168.56.22 | MongoDB 8.0.5 en `:27017`, base `sirav_3fn` | `127.0.0.1:17017` | `127.0.0.1:2222` |
+| SIRAV-Web | 192.168.56.23 | Nginx en `:80` (React y proxy `/api`), API Java en `127.0.0.1:8080` | `http://localhost:8088` | `127.0.0.1:2223` |
+
+- Cada VM tiene un adaptador NAT (Internet y SSH) y uno solo-anfitrión (`192.168.56.0/24`), por donde la API llega a las bases.
+- SIRAV-Web tiene además un adaptador puente para que otros equipos de la red local abran la aplicación (`http://<IP de la VM en la LAN>`).
+- Las bases no publican puertos hacia la red local. Los puertos NAT se publican solo en `127.0.0.1` del equipo Windows.
+
+**Cómo se creó.**
+
+1. `scripts/create-database-vms.ps1` descarga la imagen *cloud* oficial de Ubuntu Server 24.04 y verifica su SHA-256. Genera las claves SSH y la configuración de cloud-init, y crea SIRAV-PostgreSQL y SIRAV-MongoDB. En el primer arranque, cloud-init instala Docker y levanta cada motor con los mismos inicializadores del repositorio (`database/postgres/`, `database/mongo/init.js`).
+2. `scripts/create-web-vm.ps1` crea SIRAV-Web y `deploy/virtualbox/provision-web.sh` instala Nginx y Java 21. La API corre como `sirav-api.service`: usuario sin privilegios, reinicio automático y memoria limitada. Las credenciales están en `/opt/sirav/application.env`, que solo lee root.
+3. `scripts/deploy-web-vm.ps1` compila y publica una versión nueva en `/opt/sirav/releases` y espera a que `/actuator/health` responda `UP`. No toca los datos de las bases.
+
+**Operación diaria** (PowerShell, en la raíz del proyecto):
+
+| Acción | Comando |
+|---|---|
+| Encender las tres VM | `scripts/manage-sirav-vms.ps1 -Action Start` |
+| Estado y comprobación | `scripts/manage-sirav-vms.ps1 -Action Status` y `-Action Check` |
+| Apagar ordenadamente | `scripts/manage-sirav-vms.ps1 -Action Stop` |
+| Diagnóstico de la web | `scripts/manage-web-vm.ps1 -Action Diagnose` |
+| Entrar por SSH | `ssh -i .runtime/virtualbox/id_ed25519 -p 2223 sirav@127.0.0.1` (2221 PostgreSQL, 2222 MongoDB) |
+
+Dentro de las VM:
+
+- SIRAV-Web: `systemctl status nginx sirav-api` y `curl http://127.0.0.1/actuator/health`.
+- SIRAV-PostgreSQL: `sudo docker exec -it sirav-postgres psql -U sirav_owner -d sirav_3fn`.
+- SIRAV-MongoDB: `sudo docker exec -it sirav-mongo mongosh -u sirav_app --authenticationDatabase sirav_3fn sirav_3fn -p`.
+
+**Arranque automático.**
+
+- Docker y los contenedores de las bases arrancan con cada VM.
+- Nginx y `sirav-api.service` están habilitados en systemd.
+- Un reinicio de SIRAV-PostgreSQL conservó tablas y datos.
+- Con el modo de virtualización de este equipo (NEM sobre Hyper-V), la API tardó cerca de 11 minutos en arrancar durante la auditoría.
+
+**Respaldos.** La política está en [`POLITICA-RESPALDOS.md`](../POLITICA-RESPALDOS.md):
+
+- Copia diaria a las 22:00, con RPO de 24 h, retención de 14 días, 8 semanas y 6 meses, y SHA-256 por archivo.
+- `scripts/backup-vms.ps1` respalda en un mismo conjunto `pg_dump`, los roles, `mongodump` y las imágenes de evidencias.
+- `scripts/test-backup-vms.ps1` restaura en bases nuevas `sirav_restore_*` y compara los conteos.
+
+**Pendiente:** según la propia política, aún no se ha ejecutado un respaldo real de las VM ni un ensayo de restauración. Hay que ejecutarlos y guardar el `manifest.json` como evidencia. El mismo procedimiento con `pg_dump` y `mongodump`, restauración en bases nuevas y comparación de conteos sí está verificado en la alternativa B (sección 9).
+
+**Verificación realizada en las VM (10 y 11 de noviembre de 2026):**
+
+- Las tres VM terminaron `cloud-init` (`done`).
+- PostgreSQL 17.6 con 14 tablas y 25 vehículos; MongoDB autenticado en `sirav_3fn`.
+- `/actuator/health` = `UP` con las dos bases.
+- Acceso desde Chrome y Edge por la red local y en vista de celular.
+- Auditoría con **81 pruebas aprobadas**: 72 de Java, 5 de interfaz y 4 flujos de navegador. Incluye 64 solicitudes HTTP concurrentes y 7 fallos encontrados y corregidos. Detalle en [`AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md).
+
+**Actualizar las VM a la versión de la entrega** (excepciones SR001 a SR008, convenciones `param_`/`vn_`/`r_` y perfiles `sirav_reportes` y `sirav_admin`). Se hace una sola vez, **en este orden**, porque la API anterior no reconoce los códigos SR y respondería con error 500:
+
+1. Publicar la API nueva en SIRAV-Web: `mvn -f backend/pom.xml verify` y luego `scripts/deploy-web-vm.ps1`.
+2. Actualizar la base, conservando todos los datos. Desde Windows, con la contraseña `POSTGRES_PASSWORD` de `.env`:
+
+   ```powershell
+   & 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h 127.0.0.1 -p 15432 -U sirav_owner -d sirav_3fn -v ON_ERROR_STOP=1 -f database/postgres/actualizar-excepciones-con-nombre.sql
+   ```
+3. Comprobar los ocho códigos (la prueba se revierte y no deja datos):
+
+   ```powershell
+   & 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h 127.0.0.1 -p 15432 -U sirav_owner -d sirav_3fn -f database/postgres/pruebas-excepciones.sql
+   ```
+
+   Deben aparecer ocho líneas `[OK] SR001` a `[OK] SR008`.
+
+Este procedimiento se probó sobre una base creada con los scripts anteriores y con el historial de demostración cargado: se conservaron las 11 reservas y los 10 pagos, los ocho códigos respondieron bien y el script se pudo ejecutar dos veces sin errores.
+
+Documentos detallados del equipo: [`DOS-SERVIDORES-VIRTUALBOX.md`](../DOS-SERVIDORES-VIRTUALBOX.md) y [`WEB-EN-VIRTUALBOX.md`](../WEB-EN-VIRTUALBOX.md).
+
+## B. Alternativa: una sola VM con Docker Compose
+
+Instala SIRAV completo en una VM Ubuntu Server 24.04 con Docker Compose. Es útil para reproducir el sistema en otro computador con menos pasos. Los pasos 4 a 8 se ejecutan automáticamente en un Ubuntu 24.04 limpio en cada cambio; el resultado está en la sección 9.
+
+![Arquitectura con Docker Compose](../diagramas/SIRAV_arquitectura_compacta.png)
 
 ## 1. Crear la máquina virtual
 
@@ -225,7 +317,7 @@ Ejecución del 11 de noviembre de 2026, de 19:05 a 19:07 hora de Bogotá ([run 4
 | `permission denied` en `docker` | El usuario no está en el grupo `docker` | `sudo usermod -aG docker $USER` y volver a iniciar sesión |
 | Las inspecciones tardan en aparecer | El publicador outbox trabaja cada 2 s, o MongoDB no responde | `docker compose logs backend`; `/api/inspections/analytics` muestra los pendientes |
 
-## 11. Evidencias para la entrega
+## 11. Evidencias para la entrega (ambas formas)
 
 Capturas que conviene guardar en `docs/evidencias/vm/`:
 

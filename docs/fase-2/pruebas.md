@@ -1,15 +1,16 @@
 # Plan y resultados de pruebas — SIRAV
 
-Historias de Jira: **SIRAV-18** (exclusión y concurrencia), **SIRAV-33** (reservas simultáneas) y **SIRAV-34** (punta a punta). Las pruebas usan **PostgreSQL y MongoDB reales**, nunca bases simuladas en memoria: las restricciones GiST, los triggers y las excepciones SR solo existen en el motor real.
+Historias de Jira: **SIRAV-18** (exclusión y concurrencia), **SIRAV-33** (reservas simultáneas) y **SIRAV-34** (punta a punta). El informe completo de la auditoría en las tres VM está en [`docs/AUDITORIA-FUNCIONAL-VM.md`](../AUDITORIA-FUNCIONAL-VM.md). Las pruebas usan **PostgreSQL y MongoDB reales**, nunca bases simuladas en memoria: las restricciones GiST, los triggers y las excepciones SR solo existen en el motor real.
 
 ## 1. Niveles de prueba
 
 | Nivel | Herramienta | Dónde | Cuándo se ejecuta |
 |---|---|---|---|
-| Integración del backend | JUnit 5 + Spring Boot Test, contra las bases de `compose.test.yaml` | `backend/src/test/java/co/edu/sirav/` | Cada push, workflow **SIRAV CI** |
+| Integración y auditoría del backend | JUnit 5 + Spring Boot Test contra PostgreSQL y MongoDB reales: `IntegrationTest` (15), `SqlAuditTest` (24), `ConcurrencyAuditTest` (11), `MongoAuditTest` (11), `ApiAuditTest` (8) y `AccessTest` (3) | `backend/src/test/java/co/edu/sirav/` | Cada push (**SIRAV CI**, sobre una base `sirav_audit_*` nueva) y en las VM (`scripts/test-vm-audit.ps1`) |
 | Interfaz (componentes) | Vitest + Testing Library | `frontend/src/views/Auth.test.jsx` | Cada push, workflow **SIRAV CI** |
 | Navegador (punta a punta) | Playwright | `frontend/e2e/` | Manual, con la aplicación en marcha (`npm run test:e2e`) |
 | Despliegue | Docker Compose + `scripts/verificar-despliegue.sh` | `.github/workflows/despliegue.yml` | Cada push que toque código, bases, scripts o Compose |
+| Excepciones con nombre | `database/postgres/pruebas-excepciones.sql`: provoca cada error y comprueba su SQLSTATE (SR001 a SR008) y su nombre `e_` | `database/postgres/` | Cada push (**SIRAV CI**) |
 | Base de datos | Prueba de humo SQL sobre los scripts cargados | Sección 4 | Al modificar `database/postgres/` |
 
 ## 2. Casos y requerimientos
@@ -61,9 +62,10 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 
 | Ejecución | Fecha | Resultado |
 |---|---|---|
-| **SIRAV CI** ([run 43124722372](https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722372)) | 11 nov 2026, 19:05 (Bogotá) | Backend: 11 pruebas, 0 fallos (8 de `IntegrationTest` y 3 de `AccessTest`). Frontend: Vitest aprobado y build de Vite correcto |
+| **SIRAV CI** ([run 43146222697](https://github.com/DavidBejarano309/SIRAV/actions/runs/43146222697)) | 11 nov 2026, 22:09 (Bogotá) | **72 pruebas de Java, 0 fallos**: Integration 15, SqlAudit 24, ConcurrencyAudit 11, MongoAudit 11, ApiAudit 8 y Access 3. Excepciones SR001 a SR008: 8 de 8. Frontend: Vitest y build correctos |
+| **Auditoría en las tres VM** (`AUDITORIA-FUNCIONAL-VM.md`) | 10 y 11 nov 2026 | **81 pruebas aprobadas**: 72 de Java, 5 de interfaz y 4 flujos Playwright en SIRAV-Web; 64 solicitudes HTTP concurrentes. Cobertura JaCoCo de 85,8 % de líneas y 64,6 % de ramas. 7 fallos encontrados y corregidos |
 | **SIRAV despliegue Docker** ([run 43124722316](https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722316)) | 11 nov 2026, 19:05 (Bogotá) | 14 de 14 comprobaciones de `verificar-despliegue.sh`; respaldo restaurado con conteos iguales; datos conservados tras el reinicio (`docs/evidencias/despliegue-docker.txt`) |
-| Playwright en Edge (equipo local) | 8 nov 2026 | 3 de 3 aprobadas (`docs/evidencias/3fn-resultados.txt`) |
+| Playwright en Edge (equipo local) | 8 nov 2026 | 3 de 3 aprobadas (`docs/evidencias/3fn-resultados.txt`); en la auditoría de las VM, 4 de 4 |
 | Prueba de humo de la base | 11 nov 2026 | 11 de 11 casos con el resultado esperado (sección 4) |
 
 ## 6. Errores encontrados por las pruebas y corregidos
@@ -73,9 +75,11 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 | El usuario `sirav_app` de MongoDB tenía permisos sobre la base `sirav` y no sobre `sirav_3fn`: el backend no arrancaba | Primera ejecución de **SIRAV CI** (`Unauthorized` al crear índices) | `database/mongo/init.js` |
 | Entre las 19:00 y la medianoche de Bogotá las pruebas reservaban "mañana" y la entrega se rechazaba | **SIRAV CI** ejecutado a las 19:00 (el runner está en UTC) | Las pruebas usan la fecha de America/Bogota |
 | Los errores de negocio no tenían nombre ni código propio | Revisión contra la propuesta (sección 6.4) | Excepciones SR001–SR007 con su nombre `e_` |
+| Siete casos de la auditoría en las VM: cancelación con motivo nulo; reserva concurrente con cierre de tarifa; usuario o permisos con rol nulo; daño nulo en la inspección; cerrar tarifa sin fecha o cambiar mantenimiento sin estado (respondían 500) | Auditoría del 10 y 11 de noviembre | `07-concurrency-validation.sql` y validaciones en `UserController`, `RentalService` y `CatalogController` (detalle en `AUDITORIA-FUNCIONAL-VM.md`) |
 
 ## 7. Limitaciones
 
-- Las pruebas de Playwright no corren en la integración continua: necesitan la aplicación levantada y un navegador. Se ejecutaron en Edge el 8 de noviembre de 2026 (3 de 3 aprobadas, `docs/evidencias/3fn-resultados.txt`).
+- Las pruebas de Playwright no corren en la integración continua: necesitan la aplicación levantada y un navegador. Se ejecutaron en la VM web durante la auditoría (4 de 4).
 - RNF-04 (menos de 2 segundos) se cumple con los datos de prueba, que son pocos; no se hizo una prueba de carga con volumen.
-- Falta repetir `scripts/verificar-despliegue.sh` dentro de la VM del equipo (guía de instalación, sección 11).
+- Las pruebas de auditoría agrupan los códigos SR como error de negocio. El código exacto de cada uno lo verifica `pruebas-excepciones.sql`.
+- Falta ejecutar en las VM el primer respaldo real y el ensayo de restauración (`POLITICA-RESPALDOS.md`).

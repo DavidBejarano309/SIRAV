@@ -1,6 +1,6 @@
 # Modelo documental de MongoDB — SIRAV
 
-Historias de Jira: **SIRAV-23** (modelo y justificación), **SIRAV-25** (colecciones y CRUD) y **SIRAV-26** (consulta compleja y agregaciones). MongoDB 8.0 guarda dos colecciones en la base `sirav_3fn`: **`inspecciones_vehiculo`** y **`bitacora_operaciones`**. Las crea `database/mongo/init.js` y la aplicación las usa desde `backend/.../inspection/`.
+Historias de Jira: **SIRAV-23** (modelo y justificación), **SIRAV-25** (colecciones y CRUD) y **SIRAV-26** (consulta compleja y agregaciones). En el despliegue del equipo, MongoDB corre en su propia VM (SIRAV-MongoDB, 192.168.56.22). MongoDB 8.0 guarda dos colecciones en la base `sirav_3fn`: **`inspecciones_vehiculo`** y **`bitacora_operaciones`**. Las crea `database/mongo/init.js` y la aplicación las usa desde `backend/.../inspection/`.
 
 ![Modelo documental](../diagramas/SIRAV_modelo_documental.png)
 
@@ -29,7 +29,7 @@ Documento de ejemplo (devolución corregida una vez):
   "kilometraje": 15320, "combustible": 80,
   "actor": 2, "fecha": { "$date": "2026-11-11T15:42:00Z" },
   "danos": [ { "zona": "Puerta trasera", "severidad": "ALTA", "descripcion": "Rayón de 20 cm" } ],
-  "evidencias": [ "devolucion-12-puerta.jpg" ],
+  "evidencias": [ "3f2a9c1e-5b7d-4e8a-9c61-2d4f8b7a1e90.jpg" ],
   "observaciones": "Cliente informa el rayón al devolver",
   "anulada": false,
   "version": 1,
@@ -47,7 +47,7 @@ Documento de ejemplo (devolución corregida una vez):
 | `kilometraje`, `combustible` | number | procedimiento | Lectura del odómetro y porcentaje del tanque en ese momento |
 | `actor`, `fecha` | long, date | procedimiento | Usuario que hizo la inspección y momento |
 | `danos[]` | array de subdocumentos | operador | 0 a 50 daños: `zona` (≤ 60), `severidad` (BAJA, MEDIA o ALTA) y `descripcion` (≤ 500) |
-| `evidencias[]` | array de strings | operador | 0 a 10 referencias a fotos (nombre o enlace; los archivos no se guardan en la base) |
+| `evidencias[]` | array de strings | operador | 0 a 10 nombres de foto (`<uuid>.png` o `.jpg`). Las imágenes se suben con `POST /api/rentals/{id}/evidence` (PNG o JPEG, máximo 5 MB, tipo verificado por su firma) y se guardan en disco: `/opt/sirav/evidencias` en la VM web o el volumen `evidence_data` en Docker, nunca dentro de las bases |
 | `observaciones` | string | operador | Hasta 2000 caracteres |
 | `version` | int | aplicación | Empieza en 0 y aumenta con cada corrección o anulación (control optimista) |
 | `historial[]` | array de subdocumentos | aplicación | Versión anterior de daños, evidencias y observaciones en cada corrección |
@@ -89,7 +89,7 @@ Documento de ejemplo (devolución corregida una vez):
 - `historial` crece con cada corrección. Es un límite conocido: en la práctica una inspección se corrige pocas veces.
 - No se usa MongoDB como copia de SQL: solo se copian dos identificadores que no cambian.
 - No hay `$lookup`.
-- No se guardan binarios.
+- No se guardan binarios en MongoDB: las fotos van a disco y el documento solo guarda su nombre (el manual desaconseja documentos grandes).
 
 ## 5. Consistencia entre PostgreSQL y MongoDB
 
@@ -159,4 +159,4 @@ Nota sobre la agregación 1: `kilometrajePromedio` promedia la lectura del odóm
 - `init.js` se ejecuta una sola vez con el usuario `root`, al crear el volumen. Crea `sirav_app` con el rol `readWrite` **solo sobre `sirav_3fn`**: sin acceso a `admin` ni a otras bases.
 - La aplicación se conecta con `authSource=sirav_3fn`.
 - MongoDB no publica puerto fuera de la red interna de Docker.
-- Prueba: `mongodbCrudVersioningComplexSearchAndAggregations` (`IntegrationTest`) y `scripts/verificar-despliegue.sh`.
+- Pruebas: `MongoAuditTest` (11 casos: validador, índices, versión, anulación, agregaciones comprobadas numéricamente y recuperación de eventos pendientes), `mongodbCrudVersioningComplexSearchAndAggregations` (`IntegrationTest`) y `scripts/verificar-despliegue.sh`.

@@ -2,7 +2,7 @@
 
 Historia de Jira: **SIRAV-14**. Datos consultados el 11 de noviembre de 2026 en las fuentes oficiales listadas al final.
 
-**Decisión:** **Ubuntu Server 24.04 LTS** con **PostgreSQL** y **MongoDB 8.0**, ejecutados con **Docker Compose**. Ubuntu obtiene 4,85 sobre 5, frente a 4,40 de Rocky Linux y 4,05 de Debian. PostgreSQL obtiene 5,00, frente a 3,40 de MariaDB y 2,80 de MySQL. Se confirma la hipótesis de la propuesta (sección 6.7), con una precisión: **Ubuntu 24.04 y no 26.04**, porque MongoDB 8.x no soporta Ubuntu 26.04.
+**Decisión:** **Ubuntu Server 24.04 LTS** con **PostgreSQL** y **MongoDB 8.0**, desplegados en tres máquinas virtuales. Ubuntu obtiene 4,85 sobre 5, frente a 4,40 de Rocky Linux y 4,05 de Debian. PostgreSQL obtiene 5,00, frente a 3,40 de MariaDB y 2,80 de MySQL. Se confirma la hipótesis de la propuesta (sección 6.7), con una precisión: **Ubuntu 24.04 y no 26.04**, porque MongoDB 8.x no soporta Ubuntu 26.04.
 
 **Versiones desplegadas:** las imágenes oficiales `postgres:17.6-alpine` y `mongo:8.0.5`, fijadas en `compose.yaml`. La comparación de motores se hizo con PostgreSQL 16, la versión que trae Ubuntu 24.04. Los criterios no cambian en la 17: exclusión GiST, PL/pgSQL y `SECURITY DEFINER` funcionan igual. Los scripts se probaron en ambas versiones: 16 en local y 17.6 en la integración continua.
 
@@ -52,15 +52,19 @@ Se elige **24.04** porque soporta la serie estable de MongoDB 8.x y el ciclo de 
 
 ## 3. Resultado
 
-| Componente | Elección | Instalación |
+| Componente | Elección | Dónde corre |
 |---|---|---|
-| Sistema operativo | Ubuntu Server 24.04 LTS | ISO oficial en la VM (6 GB de RAM, 2 núcleos y 40 GB recomendados; mínimo 4 GB) |
-| Contenedores | Docker Engine y el plugin Compose | Repositorio oficial de Docker para Ubuntu (ver `docs/fase-2/guia-instalacion.md`) |
-| RDBMS | PostgreSQL 17.6 (imagen `postgres:17.6-alpine`) con `btree_gist` | Lo crea `docker compose up` con `database/postgres/init.sh` |
-| Base documental | MongoDB 8.0.5 Community (imagen `mongo:8.0.5`) | Lo crea `docker compose up` con `database/mongo/init.js` |
-| Aplicación | Spring Boot 3.5 (Java 21) y React 19 servido por nginx | Imágenes construidas desde `backend/` y `frontend/` |
+| Sistema operativo | Ubuntu Server 24.04 LTS (imagen *cloud* oficial, sin escritorio) | Tres VM de VirtualBox de 2 GB y 2 CPU cada una |
+| RDBMS | PostgreSQL 17.6 con `btree_gist` (imagen `postgres:17.6-alpine`) | VM SIRAV-PostgreSQL (192.168.56.21) |
+| Base documental | MongoDB 8.0.5 Community (imagen `mongo:8.0.5`) | VM SIRAV-MongoDB (192.168.56.22) |
+| Aplicación | Nginx con React compilado y la API Spring Boot (Java 21) como servicio systemd | VM SIRAV-Web (192.168.56.23) |
+| Contenedores | Docker Engine, instalado por cloud-init en las VM de las bases | Las dos VM de bases |
 
-**Por qué Docker Compose.** Fija las versiones exactas de los cuatro servicios y repite la misma instalación en la VM, en un portátil y en la integración continua. Crea las dos bases con sus usuarios y scripts en el primer arranque. Además, solo expone el puerto 8088 de la interfaz web en `127.0.0.1`; las bases no quedan accesibles desde fuera de la VM.
+**Por qué tres VM de 2 GB y no una de 6 GB.** El equipo no tenía memoria para una sola VM grande (riesgo R2). Separar los motores además deja ver la arquitectura real, con la API conectada a dos servidores de bases por red, y permite apagar o respaldar cada componente por separado. Uso medido: 375 MB en PostgreSQL, 459 MB en MongoDB y 567 MB en la VM web.
+
+**Por qué los motores van en contenedores dentro de las VM.** Fija las versiones exactas (17.6 y 8.0.5) y reutiliza los mismos inicializadores del repositorio (`init.sh`, `init.js`). La VM sigue siendo el servidor Linux exigido; el contenedor solo empaqueta el motor.
+
+**Alternativa.** Todo el sistema puede correr con Docker Compose en una sola VM Ubuntu de 4 a 6 GB (`compose.yaml` y `compose.vm.yaml`), verificado en la integración continua. Ver `guia-instalacion.md`, parte B.
 
 ## Fuentes
 

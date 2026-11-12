@@ -2,7 +2,7 @@
 
 Historia de Jira: **SIRAV-10**. Es el documento que anuncian las secciones 7.3 y 7.5 de la propuesta: cronograma (Gantt), matriz gráfica de riesgos, roles y metodología.
 
-**Estado al 11 de noviembre de 2026:** la aplicación SIRAV 3FN cubre las historias de base de datos, MongoDB, aplicación y pruebas (SIRAV-16 a SIRAV-34) y está en revisión en el PR #17, con la integración continua en verde. La documentación de cierre está en el PR de entrega final. Quedan pendientes la instalación en la VM (SIRAV-15), la ejecución de la guía de despliegue en ella (SIRAV-35) y el video (SIRAV-37).
+**Estado al 11 de noviembre de 2026:** la aplicación está desplegada en tres VM de VirtualBox (SIRAV-15) y auditada, con 81 pruebas aprobadas en las VM y 72 pruebas de Java en verde en GitHub Actions. La documentación de cierre está en el PR de entrega final. Quedan pendientes el primer respaldo real de las VM (SIRAV-35) y el video (SIRAV-37).
 
 ## 1. Metodología
 
@@ -59,11 +59,11 @@ El detalle de cada riesgo y su mitigación está en [`docs/fase-1/matriz-riesgos
 | Riesgo | Estado |
 |---|---|
 | R1 Restricciones de exclusión y PL/pgSQL | Mitigado: RN-01 con exclusión GiST y `FOR UPDATE`, probada con dos hilos simultáneos |
-| R2 Recursos para la VM | Abierto: la VM (SIRAV-15) sigue pendiente; el despliegue con Docker Compose ya está documentado |
+| R2 Recursos para la VM | Mitigado: tres VM de 2 GB en lugar de una de 6 GB |
 | R3 Integración de Spring Boot con dos bases | Ocurrió y se resolvió: error de permisos del usuario de MongoDB corregido; patrón outbox para tolerar caídas |
 | R4 Reparto de trabajo en un equipo de dos | A completar por el equipo |
-| R5 Crecimiento del alcance | Controlado: se retiraron funciones accesorias de la aplicación |
-| R6 Pérdida de código o de la VM | Mitigado para el código y las bases (`scripts/backup.sh`); falta la instantánea de la VM |
+| R5 Crecimiento del alcance | Ocurrió de forma controlada: los supuestos v2.0 agregaron cuentas, historial, cargos y fotos, todo trazado y probado |
+| R6 Pérdida de código o de la VM | Mitigado en parte: política y scripts de respaldo de las tres VM; falta el primer respaldo real |
 | R7 Dos versiones del esquema en paralelo | Ocurrió y se resolvió: se adoptó el esquema de la aplicación como único |
 
 ## 5. Herramientas

@@ -104,6 +104,7 @@ Valor diario de una categoría durante una vigencia `[vigente_desde, vigente_has
 **Restricciones de varias columnas:**
 
 - `ex_tarifa` (GiST): la misma categoría no puede tener dos vigencias que se crucen.
+- `trg_proteger_tarifa_historica` (`06-supuestos.sql`): si una tarifa ya la usan reservas, no se puede cambiar su categoría, valor ni fecha de inicio, ni cerrar su vigencia antes del fin de esas reservas (SR008 `e_tarifa_historica`). Para cambiar un precio se cierra la vigencia y se crea otra tarifa.
 
 ## mantenimiento
 

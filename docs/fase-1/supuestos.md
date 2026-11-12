@@ -1,18 +1,20 @@
 # Documento de supuestos — SIRAV
 
+Resumen de los supuestos que rigen el proyecto. El documento completo del equipo, versión 2.0 con 101 supuestos funcionales, está en [`docs/referencias/Supuestos_SIRAV.docx`](../referencias/Supuestos_SIRAV.docx). Su verificación uno por uno está en [`docs/SUPUESTOS-CUMPLIMIENTO.md`](../SUPUESTOS-CUMPLIMIENTO.md).
+
 ## Del negocio
 
-- Una sola sede. Los datos de demostración cargan una flota pequeña por categoría; la propuesta estima una flota real de 20 a 30 vehículos en 4 o 5 categorías.
+- Una sola sede, con una flota inicial de 25 vehículos en 5 categorías (Compacto, SUV, Sedán, Camioneta y Van), dentro del rango de 20 a 30 vehículos de la propuesta (`06-supuestos.sql`).
 - Cada reserva corresponde a un cliente y a un vehículo.
 - Los precios, pagos y cargos son valores de demostración en pesos colombianos; no hay pasarela de pago.
-- Las fotografías de inspección se referencian por nombre o enlace (campo `evidencias`, hasta 10 por inspección); los archivos no se almacenan en la base.
+- Las fotografías de inspección se adjuntan como imágenes PNG o JPEG de hasta 5 MB. Los archivos se guardan en el disco del servidor de la aplicación, fuera de las bases. MongoDB guarda solo su referencia (campo `evidencias`, hasta 10 por inspección), y solo el personal o el cliente de esa reserva pueden descargarlas.
 - Existen tres perfiles de usuario: administrador, operador y cliente.
 
 ## Técnicos
 
 - PostgreSQL es la fuente única de verdad para reservas, alquileres y pagos de prueba.
 - MongoDB guarda inspecciones y bitácora de eventos, enlazadas por el identificador del alquiler.
-- La aplicación (backend Spring Boot y frontend React) y las dos bases de datos se ejecutan con Docker Compose dentro de una máquina virtual Ubuntu Server.
+- El sistema se despliega en tres máquinas virtuales Ubuntu Server 24.04 en VirtualBox: PostgreSQL, MongoDB y web (Nginx, React y la API Java). Cada una tiene 2 GB de RAM y los motores corren en contenedores. Como alternativa, todo puede ejecutarse con Docker Compose en una sola VM.
 - Se dispone de un equipo anfitrión con recursos suficientes para la VM (recomendado: 6 GB de RAM, 2 núcleos y 40 GB de disco).
 - Todo el software usado es gratuito o de código abierto.
 
@@ -61,7 +63,7 @@ La propuesta fija los estados de la reserva (SOLICITADA, CONFIRMADA, ACTIVA, CER
 
 ### Errores de negocio
 
-Cada regla que la base rechaza devuelve un código propio y el nombre de la excepción; la aplicación los muestra como error 409 (`02-integrity.sql`, `03-procedures.sql`, `ApiErrors.java`).
+Cada regla que la base rechaza devuelve un código propio (SR001 a SR008) y el nombre de la excepción; la aplicación los muestra como error 409 (`02-integrity.sql`, `03-procedures.sql`, `ApiErrors.java`).
 
 | Código | Excepción | Cuándo ocurre |
 |---|---|---|
@@ -72,6 +74,7 @@ Cada regla que la base rechaza devuelve un código propio y el nombre de la exce
 | SR005 | `e_vehiculo_no_disponible` | Vehículo inactivo, inexistente o no apto para entrega |
 | SR006 | `e_tarifa_no_vigente` | Ninguna tarifa cubre el período |
 | SR007 | `e_parametro_invalido` | Fechas, motivo, kilometraje o clave de idempotencia inválidos |
+| SR008 | `e_tarifa_historica` | Se intenta cambiar una tarifa que ya usan reservas, o acortar su vigencia (las tarifas usadas son históricas: se cierra su vigencia y se crea otra) |
 
 ### Personas y acceso
 
@@ -79,7 +82,8 @@ Cada regla que la base rechaza devuelve un código propio y el nombre de la exce
 - Un usuario puede tener varios perfiles a la vez (tabla `usuario_rol`).
 - La aplicación se conecta con el usuario de base de datos `sirav_app`, que no puede insertar, modificar ni borrar directamente reservas, alquileres, pagos ni auditoría: lo hace solo a través de los procedimientos `sp_` (`05-permissions.sql`).
 - Para consultas y reportes existe el perfil `sirav_reportes`, de solo lectura, que no ve contraseñas; el perfil `sirav_admin` administra catálogo, tarifas y mantenimientos (`05-permissions.sql`).
-- Al cerrar sesión se invalidan todos los tokens emitidos al usuario (`usuario.token_version`).
+- Al cerrar sesión, al cambiar la contraseña o al modificar los perfiles de un usuario se invalidan todos sus tokens (`usuario.token_version`).
+- Solo el administrador crea cuentas de personal, asigna perfiles y desactiva cuentas; las cuentas no se borran, para conservar el historial.
 
 ### MongoDB
 
