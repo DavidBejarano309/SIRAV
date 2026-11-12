@@ -1,6 +1,6 @@
 SIRAV — Evidencia de despliegue Docker (workflow "SIRAV despliegue Docker")
-Ejecución: https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722316
-Fecha: 2026-11-12 00:05–00:07 UTC (11 de noviembre, 19:05–19:07 hora de Bogotá)
+Ejecución: https://github.com/DavidBejarano309/SIRAV/actions/runs/43147733559
+Fecha: 2026-11-12 03:22 UTC (11 de noviembre de 2026, 22:22 hora de Bogotá). Versión con tres VM, supuestos v2.0 y excepciones SR001-SR008.
 
 Docker version 28.0.4, build b8034c0
 Docker Compose version v2.38.2
@@ -11,10 +11,12 @@ Ubuntu 24.04.5 LTS
   [OK] backend en línea (actuator/health = UP)
   [OK] inicio de sesión con JWT (operador@sirav.local)
   [OK] catálogo: vehículo 1 libre de 2026-11-11 a 2026-11-13; cliente 1
-  [OK] sp_crear_reserva: reserva 1 SOLICITADA, costo base 240000.0
+  [OK] sp_crear_reserva: reserva 12 SOLICITADA, costo base 240000.0
   [OK] reserva solapada rechazada con HTTP 409: El vehículo no está disponible en esas fechas
   [OK] sp_confirmar_reserva: CONFIRMADA
-  [OK] sp_iniciar_alquiler: alquiler 1 ACTIVA con inspección de entrega
+  [OK] foto de entrega subida: /api/reservations/12/evidence/8e5f29fe-6655-4023-8072-4c95e892b117.png
+  [OK] sp_iniciar_alquiler: alquiler 11 ACTIVA con inspección de entrega
+  [OK] foto de devolución subida y descargada (image/png)
   [OK] sp_cerrar_alquiler: estado CERRADA, pagado 240000.0
   [OK] pago registrado: SIMULADO APROBADO 240000.0
   [OK] auditoría (trg_auditar_reserva): SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA
@@ -28,16 +30,12 @@ Ubuntu 24.04.5 LTS
 frontend 0.0.0.0:8088->80/tcp, [::]:8088->80/tcp
 
 --- 7. scripts/backup.sh
-Respaldos guardados en backups/20261112-000719
--rw------- 1 runner runner   1189 Nov 12 00:07 mongodb.archive.gz
--rw------- 1 runner runner 142394 Nov 12 00:07 postgres.dump
 
---- 8. Restauración en bases de prueba (reservas|alquileres|pagos y documentos de MongoDB)
-sirav_3fn|1|1|1
-sirav_restaurada|1|1|1
-sirav_3fn 2 4
-sirav_restaurada 2 4
-(MongoDB: inspecciones bitácora; la restauración coincide con el original)
+--- 8. Restauración en bases nuevas (base|reservas|alquileres|pagos; base inspecciones bitácora)
+sirav_3fn|12|11|11
+sirav_restaurada|12|11|11
+sirav_3fn 22 17
+sirav_restaurada 22 17
 
 --- 9. Tras docker compose restart
-reservas tras reinicio: 1
+reservas tras reinicio: 12

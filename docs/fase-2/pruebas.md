@@ -64,7 +64,7 @@ Se ejecutó sobre PostgreSQL 16 con los scripts `01` a `05` recién cargados (11
 |---|---|---|
 | **SIRAV CI** ([run 43146222697](https://github.com/DavidBejarano309/SIRAV/actions/runs/43146222697)) | 11 nov 2026, 22:09 (Bogotá) | **72 pruebas de Java, 0 fallos**: Integration 15, SqlAudit 24, ConcurrencyAudit 11, MongoAudit 11, ApiAudit 8 y Access 3. Excepciones SR001 a SR008: 8 de 8. Frontend: Vitest y build correctos |
 | **Auditoría en las tres VM** (`AUDITORIA-FUNCIONAL-VM.md`) | 10 y 11 nov 2026 | **81 pruebas aprobadas**: 72 de Java, 5 de interfaz y 4 flujos Playwright en SIRAV-Web; 64 solicitudes HTTP concurrentes. Cobertura JaCoCo de 85,8 % de líneas y 64,6 % de ramas. 7 fallos encontrados y corregidos |
-| **SIRAV despliegue Docker** ([run 43124722316](https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722316)) | 11 nov 2026, 19:05 (Bogotá) | 14 de 14 comprobaciones de `verificar-despliegue.sh`; respaldo restaurado con conteos iguales; datos conservados tras el reinicio (`docs/evidencias/despliegue-docker.txt`) |
+| **SIRAV despliegue Docker** ([run 43147733559](https://github.com/DavidBejarano309/SIRAV/actions/runs/43147733559)) | 11 nov 2026, 22:22 (Bogotá) | 16 de 16 comprobaciones de `verificar-despliegue.sh`, incluidas las fotos de evidencia; respaldo restaurado con conteos iguales (12 reservas, 22 inspecciones); datos conservados tras el reinicio (`docs/evidencias/despliegue-docker.txt`) |
 | Playwright en Edge (equipo local) | 8 nov 2026 | 3 de 3 aprobadas (`docs/evidencias/3fn-resultados.txt`); en la auditoría de las VM, 4 de 4 |
 | Prueba de humo de la base | 11 nov 2026 | 11 de 11 casos con el resultado esperado (sección 4) |
 

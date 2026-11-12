@@ -216,7 +216,7 @@ Docker publica sus puertos por encima de `ufw`, así que no se debe publicar nin
 bash scripts/verificar-despliegue.sh
 ```
 
-El script usa la cuenta `operador@sirav.local` y recorre el flujo completo a través de nginx:
+El script usa la cuenta `operador@sirav.local` y recorre el flujo completo a través de nginx, subiendo una imagen PNG de prueba como evidencia:
 
 1. Salud del backend e inicio de sesión.
 2. Catálogo.
@@ -291,20 +291,21 @@ Además de los respaldos lógicos, conviene tomar una **instantánea de la VM** 
 
 ## 9. Resultado de la verificación automática
 
-Ejecución del 11 de noviembre de 2026, de 19:05 a 19:07 hora de Bogotá ([run 43124722316](https://github.com/DavidBejarano309/SIRAV/actions/runs/43124722316)), en Ubuntu 24.04.5 LTS con Docker 28.0.4 y Compose v2.38.2. Salida completa en [`docs/evidencias/despliegue-docker.txt`](../evidencias/despliegue-docker.txt).
+Ejecución del 11 de noviembre de 2026 a las 22:22, hora de Bogotá ([run 43147733559](https://github.com/DavidBejarano309/SIRAV/actions/runs/43147733559)), en Ubuntu 24.04.5 LTS con Docker 28.0.4 y Compose v2.38.2. La versión verificada incluye las tres VM, los supuestos v2.0 y las excepciones SR001 a SR008. Salida completa en [`docs/evidencias/despliegue-docker.txt`](../evidencias/despliegue-docker.txt).
 
 | Paso | Resultado |
 |---|---|
 | Construcción y arranque con `compose.vm.yaml` | Cuatro servicios en marcha; solo `frontend` publica un puerto (`0.0.0.0:8088->80`) |
-| `verificar-despliegue.sh` | 14 de 14 comprobaciones correctas. Incluye la reserva solapada rechazada con 409 (`El vehículo no está disponible en esas fechas`), el pago `SIMULADO APROBADO 240000`, la auditoría `SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA` y 2 inspecciones publicadas en MongoDB |
-| `backup.sh` | `postgres.dump` (139 KB) y `mongodb.archive.gz`, ambos con permisos 600 |
-| Restauración en bases nuevas | PostgreSQL: 1 reserva, 1 alquiler y 1 pago, igual que el original. MongoDB: 2 inspecciones y 4 eventos, igual que el original |
-| `docker compose restart` | La aplicación vuelve a responder y conserva los datos (1 reserva) |
+| `verificar-despliegue.sh` | **16 de 16** comprobaciones correctas. Incluye la reserva solapada rechazada con 409, la subida y descarga de las fotos de entrega y devolución, el pago `SIMULADO APROBADO`, la auditoría `SOLICITADA -> CONFIRMADA -> ACTIVA -> CERRADA`, las inspecciones en MongoDB y los seis reportes |
+| `backup.sh` | `postgres.dump`, `mongodb.archive.gz` y `evidencias.tar.gz`, con permisos 600 |
+| Restauración en bases nuevas | PostgreSQL: 12 reservas, 11 alquileres y 11 pagos, igual que el original (incluye el historial de demostración). MongoDB: 22 inspecciones y 17 eventos, igual que el original |
+| `docker compose restart` | La aplicación vuelve a responder y conserva los datos |
 
 **Errores que encontró esta verificación y ya están corregidos:**
 
-- Las cuentas de demostración se crean aproximadamente un segundo después de que el backend reporta que está en línea. Un inicio de sesión en ese instante se rechaza. El script lo reintenta; un usuario solo tendría que volver a intentar.
-- Un respaldo tomado en los primeros segundos después de una devolución puede no incluir aún su inspección en MongoDB, porque el publicador trabaja cada 2 s. El dato no se pierde: queda en `evento_outbox`, que sí se respalda, y se publica al restaurar.
+- Las pruebas de auditoría se ejecutaban dentro de la construcción de la imagen Docker y la hacían fallar: su condición `SIRAV_AUDIT` no se heredaba.
+- Las cuentas de demostración se crean cerca de un segundo después de que el backend reporta que está en línea. El script reintenta el inicio de sesión.
+- Un respaldo tomado en los primeros segundos después de una devolución puede no incluir aún su inspección en MongoDB, porque el publicador trabaja cada 2 s. El dato no se pierde: queda en `evento_outbox`, que sí se respalda.
 
 ## 10. Problemas frecuentes
 
