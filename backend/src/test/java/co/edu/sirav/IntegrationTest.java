@@ -7,6 +7,7 @@ import co.edu.sirav.inspection.OutboxPublisher;
 import com.mongodb.MongoTimeoutException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.*;
 import org.bson.Document;
@@ -36,6 +37,9 @@ import org.springframework.util.LinkedMultiValueMap;
 @EnabledIfEnvironmentVariable(named = "SIRAV_INTEGRATION", matches = "true")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class IntegrationTest {
+  // Las reglas de fechas de la base usan la hora de Bogotá; el servidor de CI está en UTC.
+  private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
+
   @Autowired TestRestTemplate http;
   @Autowired JdbcTemplate db;
   @Autowired MongoTemplate mongo;
@@ -114,9 +118,9 @@ class IntegrationTest {
             "idVehiculo",
             vehicle,
             "fechaInicio",
-            LocalDate.now().toString(),
+            LocalDate.now(BOGOTA).toString(),
             "fechaFin",
-            LocalDate.now().plusDays(1).toString());
+            LocalDate.now(BOGOTA).plusDays(1).toString());
     var created =
         http.exchange(
             "/api/reservations", HttpMethod.POST, new HttpEntity<>(input, headers), Map.class);
@@ -245,8 +249,8 @@ class IntegrationTest {
                         actor,
                         client,
                         vehicle,
-                        LocalDate.now().plusDays(90),
-                        LocalDate.now().plusDays(93),
+                        LocalDate.now(BOGOTA).plusDays(90),
+                        LocalDate.now(BOGOTA).plusDays(93),
                         key);
                     return true;
                   } catch (org.springframework.dao.DataAccessException e) {
@@ -275,9 +279,9 @@ class IntegrationTest {
               "/api/reports/"
                   + type
                   + "?from="
-                  + LocalDate.now().withDayOfMonth(1)
+                  + LocalDate.now(BOGOTA).withDayOfMonth(1)
                   + "&to="
-                  + LocalDate.now().plusDays(5),
+                  + LocalDate.now(BOGOTA).plusDays(5),
               HttpMethod.GET,
               entity(token, null),
               String.class);
@@ -543,7 +547,7 @@ class IntegrationTest {
         db.queryForObject("SELECT id_cliente FROM cliente WHERE id_usuario=?", Long.class, id);
     long vehicle =
         db.queryForObject("SELECT id_vehiculo FROM vehiculo WHERE placa='SIR505'", Long.class);
-    LocalDate reservationFrom = LocalDate.now().plusDays(200);
+    LocalDate reservationFrom = LocalDate.now(BOGOTA).plusDays(200);
     while (!db.queryForObject(
         "SELECT fn_vehiculo_disponible(?,?,?)",
         Boolean.class,
@@ -589,9 +593,9 @@ class IntegrationTest {
     assertThat(
             http.exchange(
                     "/api/audit/events?from="
-                        + LocalDate.now().minusDays(1)
+                        + LocalDate.now(BOGOTA).minusDays(1)
                         + "&to="
-                        + LocalDate.now().plusDays(1),
+                        + LocalDate.now(BOGOTA).plusDays(1),
                     HttpMethod.GET,
                     entity(admin, null),
                     List.class)
@@ -668,7 +672,7 @@ class IntegrationTest {
     String admin = token("admin@sirav.local");
     long vehicle =
         db.queryForObject("SELECT id_vehiculo FROM vehiculo WHERE placa='SIR504'", Long.class);
-    LocalDate from = LocalDate.now().plusDays(150);
+    LocalDate from = LocalDate.now(BOGOTA).plusDays(150);
     LocalDate to = from.plusDays(3);
     var input =
         Map.of(
@@ -841,7 +845,7 @@ class IntegrationTest {
             category,
             "T" + key.toUpperCase());
     var keys = List.of(UUID.randomUUID(), UUID.randomUUID());
-    LocalDate from = LocalDate.now().plusDays(250);
+    LocalDate from = LocalDate.now(BOGOTA).plusDays(250);
     try {
       db.update(
           "CALL sp_crear_reserva(?,?,?,?,?,?)",
@@ -877,8 +881,8 @@ class IntegrationTest {
                       actor,
                       client,
                       vehicle,
-                      LocalDate.now().minusDays(2),
-                      LocalDate.now().minusDays(1),
+                      LocalDate.now(BOGOTA).minusDays(2),
+                      LocalDate.now(BOGOTA).minusDays(1),
                       UUID.randomUUID()))
           .isInstanceOf(org.springframework.dao.DataAccessException.class);
       assertThatThrownBy(
@@ -935,8 +939,8 @@ class IntegrationTest {
         actor,
         client,
         vehicle,
-        LocalDate.now(),
-        LocalDate.now().plusDays(1),
+        LocalDate.now(BOGOTA),
+        LocalDate.now(BOGOTA).plusDays(1),
         key);
     long reservation =
         db.queryForObject("SELECT id_reserva FROM reserva WHERE idempotencia=?", Long.class, key);

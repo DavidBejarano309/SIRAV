@@ -31,19 +31,36 @@ jobs:
         run: bash scripts/configure.sh
       - name: Iniciar bases reales
         run: docker compose -f compose.yaml -f compose.test.yaml up -d --wait postgres mongo
-      - name: Compilar y ejecutar pruebas integrales
+      - name: Probar las excepciones con nombre (SR001 a SR008)
+        run: docker compose -f compose.yaml -f compose.test.yaml exec -T postgres psql -U sirav_owner -d sirav_3fn -v ON_ERROR_STOP=1 -f /schema/pruebas-excepciones.sql
+      - name: Crear bases de auditoría aisladas (igual que scripts/prepare-vm-audit.ps1)
+        run: |
+          set -a; source .env; set +a
+          db="sirav_audit_$(date -u +%Y%m%d%H%M%S)"
+          echo "AUDIT_DB=$db" >> "$GITHUB_ENV"
+          dc="docker compose -f compose.yaml -f compose.test.yaml"
+          $dc exec -T postgres psql -U sirav_owner -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE $db OWNER sirav_owner"
+          for f in database/postgres/0*.sql; do
+            $dc exec -T postgres psql -U sirav_owner -d "$db" -v ON_ERROR_STOP=1 -q -f "/schema/$(basename "$f")"
+          done
+          sed "s/'sirav_3fn'/'$db'/g" database/mongo/init.js > /tmp/audit-init.js
+          $dc exec -T -e MONGO_PASSWORD="$MONGO_PASSWORD" mongo sh -c 'cat > /tmp/audit-init.js; mongosh --quiet -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin /tmp/audit-init.js' < /tmp/audit-init.js
+      - name: Compilar y ejecutar pruebas integrales y de auditoría
         env:
           SIRAV_INTEGRATION: "true"
+          SIRAV_AUDIT: "true"
           SEED_DEMO: "true"
           DEMO_PASSWORD: SiravDemo2026!
           JWT_SECRET: ci-test-secret-at-least-32-bytes-long
-          DB_URL: jdbc:postgresql://localhost:55432/sirav_3fn
           DB_USER: sirav_app
+          SIRAV_TEST_EVIDENCE_DIR: /tmp/sirav-test-evidencias
         run: |
           set -a
           source .env
           set +a
-          export MONGO_URI="mongodb://sirav_app:${MONGO_PASSWORD}@localhost:57017/sirav_3fn?authSource=sirav_3fn"
+          export DB_URL="jdbc:postgresql://localhost:55432/${AUDIT_DB}"
+          export SIRAV_AUDIT_OWNER_PASSWORD="$POSTGRES_PASSWORD"
+          export MONGO_URI="mongodb://sirav_app:${MONGO_PASSWORD}@localhost:57017/${AUDIT_DB}?authSource=${AUDIT_DB}"
           mvn -B -f backend/pom.xml verify
       - uses: actions/upload-artifact@v4
         if: always()

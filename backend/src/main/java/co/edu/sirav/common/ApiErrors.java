@@ -55,7 +55,7 @@ public class ApiErrors {
     Throwable cause = e.getMostSpecificCause();
     if (cause instanceof SQLException sql) {
       String state = sql.getSQLState();
-      if ("P0001".equals(state))
+      if ("P0001".equals(state) || (state != null && state.startsWith("SR")))
         return ProblemDetail.forStatusAndDetail(
             HttpStatus.CONFLICT, sql.getMessage().split("\n")[0].replace("ERROR: ", ""));
       if (state != null && state.startsWith("23"))

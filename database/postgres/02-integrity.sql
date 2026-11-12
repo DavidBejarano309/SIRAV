@@ -29,34 +29,34 @@ CREATE INDEX ix_outbox_pendiente ON evento_outbox(creado_en) WHERE publicado_en 
 CREATE FUNCTION fn_actor() RETURNS BIGINT LANGUAGE sql STABLE AS $$
  SELECT nullif(current_setting('sirav.actor',true),'')::bigint
 $$;
-CREATE FUNCTION fn_vehiculo_disponible(p_vehiculo BIGINT,p_inicio DATE,p_fin DATE) RETURNS BOOLEAN LANGUAGE sql STABLE AS $$
- SELECT p_fin>p_inicio AND EXISTS(SELECT 1 FROM vehiculo v WHERE v.id_vehiculo=p_vehiculo AND v.estado_operativo<>'INACTIVO')
- AND NOT EXISTS(SELECT 1 FROM reserva r WHERE r.id_vehiculo=p_vehiculo AND r.estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') AND daterange(r.fecha_inicio,r.fecha_fin,'[)') && daterange(p_inicio,p_fin,'[)'))
- AND NOT EXISTS(SELECT 1 FROM mantenimiento m WHERE m.id_vehiculo=p_vehiculo AND m.estado='PROGRAMADO' AND daterange(m.fecha_inicio,m.fecha_fin,'[)') && daterange(p_inicio,p_fin,'[)'))
+CREATE FUNCTION fn_vehiculo_disponible(param_vehiculo BIGINT,param_inicio DATE,param_fin DATE) RETURNS BOOLEAN LANGUAGE sql STABLE AS $$
+ SELECT param_fin>param_inicio AND EXISTS(SELECT 1 FROM vehiculo v WHERE v.id_vehiculo=param_vehiculo AND v.estado_operativo<>'INACTIVO')
+ AND NOT EXISTS(SELECT 1 FROM reserva r WHERE r.id_vehiculo=param_vehiculo AND r.estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') AND daterange(r.fecha_inicio,r.fecha_fin,'[)') && daterange(param_inicio,param_fin,'[)'))
+ AND NOT EXISTS(SELECT 1 FROM mantenimiento m WHERE m.id_vehiculo=param_vehiculo AND m.estado='PROGRAMADO' AND daterange(m.fecha_inicio,m.fecha_fin,'[)') && daterange(param_inicio,param_fin,'[)'))
 $$;
-CREATE FUNCTION fn_calcular_costo(p_reserva BIGINT) RETURNS NUMERIC LANGUAGE sql STABLE AS $$
- SELECT (r.fecha_fin-r.fecha_inicio)*t.valor_diario FROM reserva r JOIN tarifa t USING(id_tarifa) WHERE r.id_reserva=p_reserva
+CREATE FUNCTION fn_calcular_costo(param_reserva BIGINT) RETURNS NUMERIC LANGUAGE sql STABLE AS $$
+ SELECT (r.fecha_fin-r.fecha_inicio)*t.valor_diario FROM reserva r JOIN tarifa t USING(id_tarifa) WHERE r.id_reserva=param_reserva
 $$;
-CREATE FUNCTION fn_calcular_cargo_retraso(p_reserva BIGINT,p_devolucion TIMESTAMPTZ) RETURNS NUMERIC LANGUAGE sql STABLE AS $$
- SELECT greatest(0,(p_devolucion AT TIME ZONE 'America/Bogota')::date-r.fecha_fin)*t.valor_diario*0.5
- FROM reserva r JOIN tarifa t USING(id_tarifa) WHERE r.id_reserva=p_reserva
+CREATE FUNCTION fn_calcular_cargo_retraso(param_reserva BIGINT,param_devolucion TIMESTAMPTZ) RETURNS NUMERIC LANGUAGE sql STABLE AS $$
+ SELECT greatest(0,(param_devolucion AT TIME ZONE 'America/Bogota')::date-r.fecha_fin)*t.valor_diario*0.5
+ FROM reserva r JOIN tarifa t USING(id_tarifa) WHERE r.id_reserva=param_reserva
 $$;
 CREATE FUNCTION trg_validar_reserva() RETURNS TRIGGER LANGUAGE plpgsql AS $$
-DECLARE v_categoria BIGINT;
+DECLARE vn_categoria BIGINT;
 BEGIN
  PERFORM 1 FROM vehiculo WHERE id_vehiculo=NEW.id_vehiculo FOR UPDATE;
  IF TG_OP='UPDATE' AND (NEW.id_cliente,NEW.id_vehiculo,NEW.id_tarifa,NEW.fecha_inicio,NEW.fecha_fin,NEW.idempotencia) IS DISTINCT FROM (OLD.id_cliente,OLD.id_vehiculo,OLD.id_tarifa,OLD.fecha_inicio,OLD.fecha_fin,OLD.idempotencia) THEN
-   RAISE EXCEPTION 'Los datos de una reserva son inmutables; cancele y cree otra' USING ERRCODE='P0001';
+   RAISE EXCEPTION 'Los datos de una reserva son inmutables; cancele y cree otra' USING ERRCODE='SR003', HINT='e_transicion_invalida';
  END IF;
  IF TG_OP='UPDATE' AND NEW.estado<>OLD.estado AND NOT ((OLD.estado='SOLICITADA' AND NEW.estado IN ('CONFIRMADA','CANCELADA')) OR (OLD.estado='CONFIRMADA' AND NEW.estado IN ('ACTIVA','CANCELADA')) OR (OLD.estado='ACTIVA' AND NEW.estado='CERRADA')) THEN
-   RAISE EXCEPTION 'Transición de reserva no permitida' USING ERRCODE='P0001';
+   RAISE EXCEPTION 'Transición de reserva no permitida' USING ERRCODE='SR003', HINT='e_transicion_invalida';
  END IF;
  IF NEW.estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') THEN
-  SELECT id_categoria INTO v_categoria FROM vehiculo WHERE id_vehiculo=NEW.id_vehiculo AND estado_operativo<>'INACTIVO';
-  IF NOT FOUND THEN RAISE EXCEPTION 'Vehículo inactivo o inexistente'; END IF;
-  PERFORM 1 FROM tarifa WHERE id_tarifa=NEW.id_tarifa AND id_categoria=v_categoria AND vigente_desde<=NEW.fecha_inicio AND (vigente_hasta IS NULL OR vigente_hasta>=NEW.fecha_fin) FOR SHARE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'No existe una tarifa que cubra el período'; END IF;
-  IF EXISTS(SELECT 1 FROM mantenimiento WHERE id_vehiculo=NEW.id_vehiculo AND estado='PROGRAMADO' AND daterange(fecha_inicio,fecha_fin,'[)') && daterange(NEW.fecha_inicio,NEW.fecha_fin,'[)')) THEN RAISE EXCEPTION 'El vehículo tiene mantenimiento en ese período'; END IF;
+  SELECT id_categoria INTO vn_categoria FROM vehiculo WHERE id_vehiculo=NEW.id_vehiculo AND estado_operativo<>'INACTIVO';
+  IF NOT FOUND THEN RAISE EXCEPTION 'Vehículo inactivo o inexistente' USING ERRCODE='SR005', HINT='e_vehiculo_no_disponible'; END IF;
+  PERFORM 1 FROM tarifa WHERE id_tarifa=NEW.id_tarifa AND id_categoria=vn_categoria AND vigente_desde<=NEW.fecha_inicio AND (vigente_hasta IS NULL OR vigente_hasta>=NEW.fecha_fin) FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'No existe una tarifa que cubra el período' USING ERRCODE='SR006', HINT='e_tarifa_no_vigente'; END IF;
+  IF EXISTS(SELECT 1 FROM mantenimiento WHERE id_vehiculo=NEW.id_vehiculo AND estado='PROGRAMADO' AND daterange(fecha_inicio,fecha_fin,'[)') && daterange(NEW.fecha_inicio,NEW.fecha_fin,'[)')) THEN RAISE EXCEPTION 'El vehículo tiene mantenimiento en ese período' USING ERRCODE='SR002', HINT='e_mantenimiento_solapado'; END IF;
  END IF;
  RETURN NEW;
 END $$;
@@ -64,7 +64,7 @@ CREATE TRIGGER trg_validar_transicion_reserva BEFORE INSERT OR UPDATE ON reserva
 CREATE FUNCTION trg_validar_mantenimiento() RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
  PERFORM 1 FROM vehiculo WHERE id_vehiculo=NEW.id_vehiculo FOR UPDATE;
- IF NEW.estado='PROGRAMADO' AND EXISTS(SELECT 1 FROM reserva WHERE id_vehiculo=NEW.id_vehiculo AND estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') AND daterange(fecha_inicio,fecha_fin,'[)') && daterange(NEW.fecha_inicio,NEW.fecha_fin,'[)')) THEN RAISE EXCEPTION 'El mantenimiento coincide con una reserva vigente'; END IF;
+ IF NEW.estado='PROGRAMADO' AND EXISTS(SELECT 1 FROM reserva WHERE id_vehiculo=NEW.id_vehiculo AND estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') AND daterange(fecha_inicio,fecha_fin,'[)') && daterange(NEW.fecha_inicio,NEW.fecha_fin,'[)')) THEN RAISE EXCEPTION 'El mantenimiento coincide con una reserva vigente' USING ERRCODE='SR002', HINT='e_mantenimiento_solapado'; END IF;
  RETURN NEW;
 END $$;
 CREATE TRIGGER trg_validar_mantenimiento BEFORE INSERT OR UPDATE ON mantenimiento FOR EACH ROW EXECUTE FUNCTION trg_validar_mantenimiento();

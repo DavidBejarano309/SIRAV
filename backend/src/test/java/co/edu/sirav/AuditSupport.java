@@ -128,7 +128,10 @@ abstract class AuditSupport {
   String sqlOutcome(Runnable task) {
     try { task.run(); return "OK"; }
     catch (DataAccessException failure) {
-      if (failure.getMostSpecificCause() instanceof SQLException sql) return sql.getSQLState();
+      // Los errores de negocio usan SQLSTATE propios (SR001 a SR008, excepciones e_ con nombre);
+      // estas pruebas los agrupan como P0001 y pruebas-excepciones.sql verifica cada código exacto.
+      if (failure.getMostSpecificCause() instanceof SQLException sql)
+        return sql.getSQLState() != null && sql.getSQLState().startsWith("SR") ? "P0001" : sql.getSQLState();
       throw failure;
     }
   }
