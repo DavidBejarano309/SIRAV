@@ -29,3 +29,19 @@ Thumbs.db
 # Base de datos local
 *.dump
 *.bson
+
+.tools/
+.runtime/
+backend/target/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+output/*.zip
+backups/
+frontend/test-results/
+frontend/playwright-report/
+output/
+*.zip
+*.sha256
+*.key
+*.sav

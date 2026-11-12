@@ -1,0 +1,73 @@
+{
+  "baseDeDatos": "sirav_3fn",
+  "colecciones": {
+    "inspecciones_vehiculo": [
+      {
+        "_id": "08e748b4-1491-4f30-88c0-77aa878a1f71",
+        "alquilerId": 1,
+        "vehiculoId": 1,
+        "categoriaId": 1,
+        "tipo": "ENTREGA",
+        "fecha": { "$date": "2026-10-22T14:00:00Z" },
+        "actor": 2,
+        "kilometraje": 12500,
+        "combustible": 100,
+        "danos": [
+          {
+            "zona": "Puerta delantera derecha",
+            "severidad": "BAJA",
+            "descripcion": "Rayón superficial registrado antes de la entrega"
+          }
+        ],
+        "evidencias": ["evidencias/alquiler-1/entrega-puerta.jpg"],
+        "observaciones": "Vehículo entregado limpio y con tanque lleno",
+        "anulada": false,
+        "version": 0
+      },
+      {
+        "_id": "469d36bc-e0f0-4422-ab7e-6ffed7d793b4",
+        "alquilerId": 1,
+        "vehiculoId": 1,
+        "categoriaId": 1,
+        "tipo": "DEVOLUCION",
+        "fecha": { "$date": "2026-10-24T15:00:00Z" },
+        "actor": 2,
+        "kilometraje": 12820,
+        "combustible": 65,
+        "danos": [
+          {
+            "zona": "Puerta delantera derecha",
+            "severidad": "BAJA",
+            "descripcion": "Se conserva el rayón registrado en la entrega"
+          },
+          {
+            "zona": "Parachoques trasero",
+            "severidad": "ALTA",
+            "descripcion": "Golpe detectado durante la inspección de devolución"
+          }
+        ],
+        "evidencias": ["evidencias/alquiler-1/devolucion-parachoques.jpg"],
+        "observaciones": "Vehículo devuelto con una nueva incidencia documentada",
+        "anulada": false,
+        "version": 0
+      }
+    ],
+    "bitacora_operaciones": [
+      {
+        "_id": "2d59d28d-b589-4ba0-9c9a-ab8acc5b8f37",
+        "accion": "RESERVA_CONFIRMADA",
+        "actor": 2,
+        "reservaId": 1,
+        "fecha": { "$date": "2026-10-22T13:30:00Z" }
+      },
+      {
+        "_id": "8f4e0648-bdc1-477c-b68b-4f78e941c0d4",
+        "accion": "POST",
+        "actor": 2,
+        "ruta": "/api/rentals/1/close",
+        "estadoHttp": 200,
+        "fecha": { "$date": "2026-10-24T15:00:01Z" }
+      }
+    ]
+  }
+}

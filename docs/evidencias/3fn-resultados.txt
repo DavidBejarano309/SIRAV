@@ -1,0 +1,11 @@
+SIRAV 3FN sencillo - 8 de noviembre de 2026 (America/Bogota)
+Esquema de 13 entidades: copia exacta del archivo SQL revisado.
+Backend: 11 pruebas, 0 fallos/errores.
+Incluye 8 pruebas integrales con PostgreSQL y MongoDB en sirav_3fn_test.
+Frontend: 3 pruebas Vitest aprobadas; build Vite correcto.
+Navegador Edge: 3 pruebas aprobadas (7.8 s).
+Casos E2E: navegación administrador, cliente/móvil, reserva-confirmación-entrega-devolución.
+Fuentes frontend: 115681 bytes antes, 61806 bytes después (aprox. 47% menos).
+Rutas REST: 41 antes, 33 después.
+Base normal: sirav_3fn. Base anterior sirav conservada.
+Docker y VM Linux: sin ejecución en este equipo.
