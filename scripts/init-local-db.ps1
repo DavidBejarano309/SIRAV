@@ -26,7 +26,14 @@ $initialized = Invoke-Sql $Database "SELECT to_regclass('public.usuario') IS NOT
 if ($initialized -eq 't') {
     $view = Invoke-Sql $Database "SELECT to_regclass('public.v_cliente_contacto') IS NOT NULL"
     if ($view -ne 't') { throw 'La base existente no tiene el esquema revisado. Se conserva sin cambios.' }
-    Write-Host "$Database ya está inicializada."
+    $updated = Invoke-Sql $Database "SELECT to_regprocedure('public.sp_cargar_historial_demo()') IS NOT NULL"
+    if ($updated -ne 't') {
+        & $Psql -h 127.0.0.1 -p $Port -U postgres -d $Database -v ON_ERROR_STOP=1 --single-transaction -f (Join-Path $root 'database/postgres/06-supuestos.sql')
+        if ($LASTEXITCODE -ne 0) { throw 'Se revirtió la ampliación de supuestos.' }
+    }
+    & $Psql -h 127.0.0.1 -p $Port -U postgres -d $Database -v ON_ERROR_STOP=1 --single-transaction -f (Join-Path $root 'database/postgres/07-concurrency-validation.sql')
+    if ($LASTEXITCODE -ne 0) { throw 'Se revirtieron las correcciones de concurrencia.' }
+    Write-Host "$Database ya está inicializada y actualizada."
     return
 }
 $arguments = @('-h','127.0.0.1','-p',"$Port",'-U','postgres','-d',$Database,'-v','ON_ERROR_STOP=1','--single-transaction')

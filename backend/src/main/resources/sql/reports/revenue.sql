@@ -5,5 +5,5 @@ WITH cobros AS (
  GROUP BY p.id_alquiler,date_trunc('month',p.fecha_pago AT TIME ZONE 'America/Bogota')
 )
 SELECT c.nombre categoria,to_char(co.mes,'YYYY-MM') mes,count(*) alquileres,sum(co.total) ingresos_simulados
-FROM cobros co JOIN alquiler a USING(id_alquiler) JOIN reserva r USING(id_reserva) JOIN vehiculo v USING(id_vehiculo) JOIN categoria_vehiculo c USING(id_categoria)
+FROM cobros co JOIN alquiler a USING(id_alquiler) JOIN reserva r USING(id_reserva) JOIN tarifa t USING(id_tarifa) JOIN categoria_vehiculo c ON c.id_categoria=t.id_categoria
 GROUP BY c.nombre,co.mes ORDER BY co.mes,c.nombre

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { CarFront } from "lucide-react";
 import { api, money, today, addDays } from "../api";
+import { newIdempotencyKey } from "../uuid";
 import {
   AddButton,
   Badge,
@@ -258,7 +259,7 @@ function Reserve({ vehicle, staff, initialFrom, initialTo, onClose, onDone }) {
   const quote = useResource(
     `/vehicles/${vehicle.id_vehiculo}/quote?from=${from}&to=${to}`,
   );
-  const key = useMemo(() => crypto.randomUUID(), [from, to, client]);
+  const key = useMemo(() => newIdempotencyKey(), [from, to, client]);
   async function submit() {
     if (!quote.data?.disponible)
       throw Error("El vehículo no está disponible para esas fechas.");

@@ -19,6 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
   public record Login(@Email @NotBlank String email, @NotBlank @Size(max = 100) String password) {}
 
+  public record Profile(
+      @NotBlank @Size(max = 100) String nombre,
+      @NotBlank @Size(max = 100) String apellido,
+      @Size(max = 25) String telefono,
+      @Size(max = 40) String licencia) {}
+
+  public record PasswordChange(
+      @NotBlank @Size(max = 100) String actual, @NotBlank @Size(min = 10, max = 72) String nueva) {}
+
   public record Register(
       @NotBlank @Size(max = 100) String nombre,
       @NotBlank @Size(max = 100) String apellido,
@@ -34,6 +43,7 @@ public class AuthService {
   private final JdbcTemplate db;
   private final PasswordEncoder passwords;
   private final JwtEncoder encoder;
+  private final AuditService audit;
   private final Map<String, Attempt> attempts = new ConcurrentHashMap<>();
   private final long minutes;
 
@@ -41,10 +51,12 @@ public class AuthService {
       JdbcTemplate db,
       PasswordEncoder passwords,
       JwtEncoder encoder,
+      AuditService audit,
       @Value("${sirav.token-minutes}") long minutes) {
     this.db = db;
     this.passwords = passwords;
     this.encoder = encoder;
+    this.audit = audit;
     this.minutes = minutes;
   }
 
@@ -53,10 +65,12 @@ public class AuthService {
     attempts.entrySet().removeIf(e -> e.getValue().minute() < minute - 1);
     Attempt attempt =
         attempts.compute(
-            address,
+            address + "|" + input.email().trim().toLowerCase(Locale.ROOT),
             (k, v) -> new Attempt(minute, v == null || v.minute() != minute ? 1 : v.count() + 1));
-    if (attempt.count() > 15)
+    if (attempt.count() > 15) {
+      audit.record("LOGIN_LIMITADO", null, null, "RECHAZADO");
       throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Demasiados intentos. Espere un minuto");
+    }
     var users =
         db.queryForList(
             "SELECT * FROM usuario WHERE email=?", input.email().trim().toLowerCase(Locale.ROOT));
@@ -64,6 +78,7 @@ public class AuthService {
         || !Boolean.TRUE.equals(users.getFirst().get("activo"))
         || !passwords.matches(input.password(), (String) users.getFirst().get("password_hash"))) {
       log.info("event=login outcome=rejected");
+      audit.record("LOGIN", null, null, "RECHAZADO");
       throw new ApiException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
     }
     var user = users.getFirst();
@@ -84,13 +99,13 @@ public class AuthService {
             .encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims))
             .getTokenValue();
     log.info("event=login actor={} outcome=success", id);
+    audit.record("LOGIN", id, id, "OK");
     return Map.of("token", token, "expiresIn", minutes * 60, "user", me(id));
   }
 
   @Transactional
   public Map<String, Object> register(Register input) {
-    if (input.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
-      throw new IllegalArgumentException("La contraseña supera 72 bytes");
+    validatePassword(input.password());
     long id =
         Objects.requireNonNull(
             db.queryForObject(
@@ -111,6 +126,7 @@ public class AuthService {
         input.documento().trim(),
         input.telefono(),
         input.licencia());
+    audit.record("REGISTRO", id, id, "OK");
     return Map.of("id", id, "message", "Cuenta creada. Ya puede iniciar sesión");
   }
 
@@ -133,7 +149,45 @@ public class AuthService {
     return user;
   }
 
+  @Transactional
+  public Map<String, Object> profile(long id, Profile input) {
+    db.update(
+        "UPDATE usuario SET nombre=?,apellido=? WHERE id_usuario=?",
+        input.nombre().trim(),
+        input.apellido().trim(),
+        id);
+    db.update(
+        "UPDATE cliente SET telefono=?,licencia_conduccion=? WHERE id_usuario=?",
+        input.telefono(),
+        input.licencia(),
+        id);
+    audit.record("PERFIL_ACTUALIZADO", id, id, "OK");
+    return me(id);
+  }
+
+  @Transactional
+  public void password(long id, PasswordChange input) {
+    String hash =
+        db.queryForObject(
+            "SELECT password_hash FROM usuario WHERE id_usuario=? FOR UPDATE", String.class, id);
+    if (!passwords.matches(input.actual(), hash))
+      throw new ApiException(HttpStatus.BAD_REQUEST, "La contraseña actual no coincide");
+    validatePassword(input.nueva());
+    db.update(
+        "UPDATE usuario SET password_hash=?,token_version=token_version+1 WHERE id_usuario=?",
+        passwords.encode(input.nueva()),
+        id);
+    audit.record("PASSWORD_CAMBIADA", id, id, "OK");
+  }
+
+  public static void validatePassword(String password) {
+    if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+      throw new ApiException(HttpStatus.BAD_REQUEST, "La contraseña supera 72 bytes");
+  }
+
+  @Transactional
   public void logout(long id) {
     db.update("UPDATE usuario SET token_version=token_version+1 WHERE id_usuario=?", id);
+    audit.record("LOGOUT", id, id, "OK");
   }
 }

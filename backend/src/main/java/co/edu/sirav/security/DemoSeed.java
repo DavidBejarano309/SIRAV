@@ -58,5 +58,6 @@ public class DemoSeed implements CommandLineRunner {
                 + " VALUES(?,'DEMO-001','DEMO-LIC-001')",
             id);
     }
+    db.update("CALL sp_cargar_historial_demo()");
   }
 }

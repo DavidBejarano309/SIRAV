@@ -165,12 +165,13 @@ export function Form({
   onDone,
   submit = "Guardar",
   onCancel,
+  disabled = false,
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function handle(event) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || disabled) return;
     const data = Object.fromEntries(new FormData(event.currentTarget));
     setBusy(true);
     setError("");
@@ -193,7 +194,11 @@ export function Form({
             Cancelar
           </button>
         )}
-        <button className="button primary" type="submit" disabled={busy}>
+        <button
+          className="button primary"
+          type="submit"
+          disabled={busy || disabled}
+        >
           {busy ? "Guardando…" : submit}
         </button>
       </div>

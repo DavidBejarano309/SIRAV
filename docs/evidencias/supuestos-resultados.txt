@@ -1,0 +1,11 @@
+Validación local — 2026-11-09, America/Bogota
+Java: 18 pruebas aprobadas (15 integración PostgreSQL/MongoDB reales + 3 Access unitarias), 0 errores, 0 fallos.
+React/Vitest: 3 pruebas aprobadas.
+Playwright/Edge: 4 escenarios aprobados; ciclo completo con foto, siete módulos, cuenta multirol/desactivación y cliente móvil.
+Se repitieron 3 escenarios de navegación tras enmascarar filas con datos personales en las capturas; todos aprobados.
+Build Maven y React: correctos.
+Fallo MongoDB: se simula solo el transporte con MongoTemplate; SQL conserva el alquiler ACTIVA y el documento en outbox, luego se publica en MongoDB real.
+Ausencia documental: borrado y restauración controlados únicamente en la base de prueba.
+Esquema 3FN del usuario: SHA-256 DF93FF765C257222FE65F383464C32EA145B191A2794C45B3BBB5EACA0BB577B, idéntico a 01-schema.sql.
+Rendimiento: consultar supuestos-medicion.txt (9–17 ms HTTP local, no VM ni carga).
+Pendiente externo: validación de Compose/VM Ubuntu y recursos, video, ejecución/restauración real de backup y Git/participación del equipo.

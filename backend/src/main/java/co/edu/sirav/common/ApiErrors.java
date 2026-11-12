@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
 public class ApiErrors {
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  ProblemDetail uploadTooLarge() {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "La imagen supera el tamaño permitido de 5 MB");
+  }
+
   private static final Logger log = LoggerFactory.getLogger(ApiErrors.class);
 
   @ExceptionHandler(ApiException.class)
@@ -49,7 +55,7 @@ public class ApiErrors {
     Throwable cause = e.getMostSpecificCause();
     if (cause instanceof SQLException sql) {
       String state = sql.getSQLState();
-      if ("P0001".equals(state) || (state != null && state.startsWith("SR")))
+      if ("P0001".equals(state))
         return ProblemDetail.forStatusAndDetail(
             HttpStatus.CONFLICT, sql.getMessage().split("\n")[0].replace("ERROR: ", ""));
       if (state != null && state.startsWith("23"))

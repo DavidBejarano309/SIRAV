@@ -1,5 +1,6 @@
 package co.edu.sirav.rental;
 
+import co.edu.sirav.inspection.EvidenceService;
 import co.edu.sirav.security.Access;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +28,7 @@ public class RentalService {
       @NotBlank @Size(max = 500) String descripcion) {}
 
   public record Inspection(
-      @NotNull @Size(max = 50) List<@Valid Damage> danos,
+      @NotNull @Size(max = 50) List<@NotNull @Valid Damage> danos,
       @NotNull @Size(max = 10) List<@NotBlank @Size(max = 500) String> evidencias,
       @Size(max = 2000) String observaciones) {}
 
@@ -41,11 +42,14 @@ public class RentalService {
   private final JdbcTemplate db;
   private final Access access;
   private final ObjectMapper json;
+  private final EvidenceService evidence;
 
-  public RentalService(JdbcTemplate db, Access access, ObjectMapper json) {
+  public RentalService(
+      JdbcTemplate db, Access access, ObjectMapper json, EvidenceService evidence) {
     this.db = db;
     this.access = access;
     this.json = json;
+    this.evidence = evidence;
   }
 
   @Transactional
@@ -83,6 +87,7 @@ public class RentalService {
   @Transactional
   public Map<String, Object> start(JwtAuthenticationToken auth, long id, Handover h) {
     access.reservation(auth, id);
+    evidence.validate(id, h.inspeccion().evidencias());
     db.update(
         "CALL sp_iniciar_alquiler(?,?,?,?,?::jsonb)",
         access.actor(auth),
@@ -96,6 +101,11 @@ public class RentalService {
   @Transactional
   public Map<String, Object> close(JwtAuthenticationToken auth, long id, Handover h) {
     access.rental(auth, id);
+    long reservation =
+        Objects.requireNonNull(
+            db.queryForObject(
+                "SELECT id_reserva FROM alquiler WHERE id_alquiler=?", Long.class, id));
+    evidence.validate(reservation, h.inspeccion().evidencias());
     db.update(
         "CALL sp_cerrar_alquiler(?,?,?,?,?::jsonb)",
         access.actor(auth),

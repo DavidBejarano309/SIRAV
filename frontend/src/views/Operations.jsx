@@ -11,16 +11,31 @@ import {
   Table,
   useResource,
 } from "../components";
-import InspectionFields, { emptyInspection } from "../InspectionFields";
-export default function Operations({ staff, revision, changed }) {
-  const resource = useResource("/reservations", revision);
+import InspectionFields, {
+  emptyInspection,
+  EvidenceList,
+} from "../InspectionFields";
+export default function Operations({
+  staff,
+  revision,
+  changed,
+  rentals = false,
+}) {
+  const resource = useResource(
+    rentals ? "/rentals" : "/reservations",
+    revision,
+  );
   const [selected, setSelected] = useState(null);
   const [action, setAction] = useState(null);
   return (
     <>
       <PageHead
-        title="Reservas y alquileres"
-        description="Solicitud, entrega y devolución en un mismo flujo."
+        title={rentals ? "Alquileres" : "Reservas"}
+        description={
+          rentals
+            ? "Entrega, devolución e inspecciones del vehículo."
+            : "Solicita en el catálogo. Para cambiar fechas, cancela y crea una nueva reserva."
+        }
       />
       <section className="panel">
         {resource.loading ? (
@@ -162,23 +177,52 @@ function Detail({ reservation: r, staff, onClose, onAction }) {
     </Modal>
   );
 }
-function RentalDetails({ id }) {
+export function RentalDetails({ id }) {
   const inspections = useResource(`/rentals/${id}/inspections`);
   const payments = useResource(`/rentals/${id}/payments`);
+  const status = useResource(`/rentals/${id}/inspection-status`);
   return (
     <>
       <h3>Inspecciones</h3>
+      {status.error && <ErrorBox>{status.error}</ErrorBox>}
+      {status.data?.estado === "INCONSISTENTE" && (
+        <ErrorBox>
+          Faltan inspecciones: {status.data.faltantes.join(", ")}. Requiere
+          revisión del operador.
+        </ErrorBox>
+      )}
+      {status.data?.estado === "PENDIENTE" && (
+        <p className="muted">
+          Inspecciones pendientes de sincronización:{" "}
+          {status.data.pendientes.join(", ")}.
+        </p>
+      )}
+      {!!status.data?.anuladas.length && (
+        <p className="muted">
+          Inspecciones anuladas: {status.data.anuladas.join(", ")}.
+        </p>
+      )}
       {inspections.error ? (
         <ErrorBox>{inspections.error}</ErrorBox>
       ) : (
         <Table
           rows={inspections.data}
-          empty="Las inspecciones aparecerán al terminar la sincronización."
+          empty="No hay inspecciones disponibles. Consulta el estado indicado arriba."
           columns={[
             { key: "tipo", label: "Tipo" },
+            {
+              key: "anulada",
+              label: "Registro",
+              render: (r) => (r.anulada ? "Anulada" : "Vigente"),
+            },
             { key: "kilometraje", label: "Km" },
             { key: "combustible", label: "Combustible (%)" },
             { key: "observaciones", label: "Observaciones" },
+            {
+              key: "evidencias",
+              label: "Evidencias",
+              render: (r) => <EvidenceList references={r.evidencias} />,
+            },
           ]}
         />
       )}
@@ -211,6 +255,7 @@ function RentalDetails({ id }) {
 }
 function ActionModal({ type, reservation: r, onClose, onDone }) {
   const [inspection, setInspection] = useState(emptyInspection);
+  const [uploading, setUploading] = useState(false);
   const handover = type === "start" || type === "close";
   const title = {
     confirm: "Confirmar reserva",
@@ -245,6 +290,7 @@ function ActionModal({ type, reservation: r, onClose, onDone }) {
       onClose={onClose}
     >
       <Form
+        disabled={uploading}
         onSubmit={submit}
         onDone={onDone}
         onCancel={onClose}
@@ -288,7 +334,12 @@ function ActionModal({ type, reservation: r, onClose, onDone }) {
                 required
               />
             </div>
-            <InspectionFields value={inspection} onChange={setInspection} />
+            <InspectionFields
+              value={inspection}
+              onChange={setInspection}
+              uploadPath={`/reservations/${r.id_reserva}/evidence`}
+              onBusyChange={setUploading}
+            />
             {type === "close" && (
               <p className="quote">
                 Base: {money(r.costo_base)}. El sistema calcula el cargo por

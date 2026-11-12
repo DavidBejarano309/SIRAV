@@ -2,15 +2,22 @@ let token = null;
 export const setToken = (value) => {
   token = value;
 };
-export async function api(path, options = {}) {
+async function request(path, options = {}) {
+  const multipart = options.body instanceof FormData;
   const response = await fetch(`/api${path}`, {
     ...options,
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body && !multipart
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: multipart
+      ? options.body
+      : options.body
+        ? JSON.stringify(options.body)
+        : undefined,
   });
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));
@@ -23,14 +30,40 @@ export async function api(path, options = {}) {
           : `No se pudo completar la operación (${response.status}).`),
     );
   }
-  if (response.status === 204) return null;
-  return response.json();
+  return response;
+}
+export async function api(path, options = {}) {
+  const response = await request(path, options);
+  return response.status === 204 ? null : response.json();
+}
+export async function uploadEvidence(path, file) {
+  const body = new FormData();
+  body.append("file", file);
+  return api(path, { method: "POST", body });
+}
+export async function openEvidence(reference) {
+  if (
+    !/^\/api\/reservations\/\d+\/evidence\/[a-f0-9-]+\.(png|jpg)$/.test(
+      reference,
+    )
+  )
+    throw new Error(
+      "Esta referencia anterior no contiene un archivo disponible. Sustitúyela por una imagen.",
+    );
+  const response = await request(reference.slice(4));
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = reference.split("/").pop();
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 export const money = (value) =>
   new Intl.NumberFormat("es-CO", {
     style: "currency",
     currency: "COP",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(Number(value || 0));
 export const date = (value) =>
   value

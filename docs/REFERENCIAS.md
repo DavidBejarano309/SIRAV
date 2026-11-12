@@ -12,3 +12,5 @@ La documentación técnica oficial respalda el uso de tecnologías; los libros y
 - Docker. [Instalación de Docker Engine en Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 
 Fuentes del caso: propuesta SIRAV, script Tablas_SIRAV y diagramas aportados por el usuario. Fuente normativa de entrega: Proyecto_Final_v20261.pdf, Universidad El Bosque, Bases de Datos 2.
+
+Ampliación funcional: Supuestos_SIRAV.docx, versión 2.0, noviembre de 2026, aportado por el usuario. Copia en docs/referencias y trazabilidad en SUPUESTOS-CUMPLIMIENTO.md.

@@ -14,13 +14,14 @@ for folder in ['backend','frontend','database','.github']:
         files.extend(Path(directory)/name for name in names if not name.endswith(('.zip','.log')) and name!='.env')
 for name in ['README.md','.gitignore','.gitattributes','.env.example','compose.yaml','compose.test.yaml']:
     files.append(root/name)
-for name in ['configure.ps1','configure.sh','start-local.ps1','start-local-api.ps1','init-local-db.ps1','test-local.ps1','backup.sh','generate-dictionary.py','export-project.py','api-demo.http']:
+for name in ['configure.ps1','configure.sh','start-local.ps1','start-local-api.ps1','init-local-db.ps1','test-local.ps1','backup.sh','generate-dictionary.py','export-project.py','generate-supuestos-matrix.py','measure-local.ps1','api-demo.http']:
     files.append(root/'scripts'/name)
-for name in ['CAMBIOS-3FN.md','ARQUITECTURA.md','DICCIONARIO.md','MANUAL.md','MODELOS.md','PRUEBAS.md','REQUISITOS.md','GESTION.md','REFERENCIAS.md','modelo-chen.dot']:
+for name in ['CAMBIOS-3FN.md','ARQUITECTURA.md','DICCIONARIO.md','MANUAL.md','MODELOS.md','PRUEBAS.md','REQUISITOS.md','GESTION.md','REFERENCIAS.md','SUPUESTOS-CUMPLIMIENTO.md','modelo-chen.dot']:
     files.append(root/'docs'/name)
 files.append(root/'docs/referencias/01-schema-SIRAV-revisado-3FN.sql')
-files.extend((root/'docs/evidencias').glob('3fn-*'))
-archive = output/'SIRAV-3FN-sencillo.zip'
+files.append(root/'docs/referencias/Supuestos_SIRAV.docx')
+files.extend((root/'docs/evidencias').glob('supuestos-*'))
+archive = output/'SIRAV-3FN-supuestos.zip'
 with ZipFile(archive,'w',ZIP_DEFLATED) as package:
     for path in sorted(files):
         package.write(path,Path('SIRAV')/path.relative_to(root))

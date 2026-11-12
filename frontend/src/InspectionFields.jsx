@@ -1,11 +1,69 @@
 import { Plus, Trash2 } from "lucide-react";
 import { Field } from "./components";
+import { useState } from "react";
+import { uploadEvidence, openEvidence } from "./api";
+import { ErrorBox } from "./components";
+export function EvidenceList({ references = [], onRemove }) {
+  const [error, setError] = useState("");
+  return (
+    <div>
+      {references.map((ref, i) => (
+        <div className="form-footer" key={ref}>
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => openEvidence(ref).catch((e) => setError(e.message))}
+          >
+            Descargar evidencia {i + 1}
+          </button>
+          {onRemove && (
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => onRemove(i)}
+            >
+              Quitar evidencia {i + 1}
+            </button>
+          )}
+        </div>
+      ))}
+      {error && <ErrorBox>{error}</ErrorBox>}
+    </div>
+  );
+}
 export const emptyInspection = () => ({
   danos: [],
   evidencias: [],
   observaciones: "",
 });
-export default function InspectionFields({ value, onChange }) {
+export default function InspectionFields({
+  value,
+  onChange,
+  uploadPath,
+  onBusyChange,
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function upload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    setBusy(true);
+    onBusyChange?.(true);
+    setError("");
+    try {
+      const result = await uploadEvidence(uploadPath, file);
+      onChange({
+        ...value,
+        evidencias: [...value.evidencias, result.referencia],
+      });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+      onBusyChange?.(false);
+      event.target.value = "";
+    }
+  }
   function damage(index, key, text) {
     onChange({
       ...value,
@@ -82,16 +140,29 @@ export default function InspectionFields({ value, onChange }) {
         onChange={(e) => onChange({ ...value, observaciones: e.target.value })}
       />
       <Field
-        label="Referencias de evidencias (una por línea)"
-        type="textarea"
-        value={value.evidencias.join("\n")}
-        onChange={(e) =>
-          onChange({ ...value, evidencias: e.target.value.split("\n") })
+        label={
+          busy
+            ? "Subiendo imagen…"
+            : "Adjuntar evidencia (PNG o JPEG, máximo 5 MB)"
+        }
+        type="file"
+        accept="image/png,image/jpeg"
+        disabled={busy || value.evidencias.length >= 10}
+        onChange={upload}
+      />
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <EvidenceList
+        references={value.evidencias}
+        onRemove={(i) =>
+          onChange({
+            ...value,
+            evidencias: value.evidencias.filter((_, j) => i !== j),
+          })
         }
       />
       <p className="muted">
-        Puedes guardar una inspección sin daños. Las evidencias son rutas o
-        referencias a archivos.
+        Puedes guardar una inspección sin daños. Espera a que termine la carga
+        de imágenes antes de guardar.
       </p>
     </section>
   );

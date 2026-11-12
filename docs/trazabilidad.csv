@@ -1,0 +1,8 @@
+requisito,historia,implementacion,prueba,rama_commit,PR,evidencia,release
+RF-01,HU-01,AuthService,Auth.test.jsx,,,,
+RF-02,HU-01,SecurityConfig y Access,AccessTest,,,,
+RF-08,HU-03,sp_crear_reserva,IntegrationTest.concurrentReservationsHaveExactlyOneWinner,,,,
+RF-10,HU-05,sp_iniciar_alquiler,IntegrationTest.lifecyclePersistsInspectionAndSimulatedPayment,,,,
+RF-11,HU-06,sp_cerrar_alquiler,IntegrationTest.lifecyclePersistsInspectionAndSimulatedPayment,,,,
+RF-14,HU-08,InspectionController,Recorrido API e interfaz,,,,
+RF-17,HU-09,ReportController,IntegrationTest.allSixSqlReportsExecuteAgainstRealDatabase,,,,

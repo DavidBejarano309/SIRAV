@@ -13,11 +13,11 @@ El registro público inserta la identidad una sola vez en USUARIO y crea el perf
 
 No se ejecuta dos veces el ALTER que añadía token_version ni se duplica la exclusión GiST de reservas: ambos objetos ya existen en el esquema revisado. La versión del token es BIGINT, según el archivo recibido. Las reglas adicionales de combustible, estados, tarifas, mantenimiento y transacciones siguen en los scripts 02 y 03.
 
-## Funciones retiradas
+## Simplificación inicial y ampliación por supuestos
 
 - Dashboard y tarjetas de indicadores generales.
-- CRUD administrativo de usuarios y cambio de roles desde la interfaz.
-- Edición de perfil y edición de clientes.
+- Se retiró inicialmente el CRUD de usuarios; ahora se incorpora administración básica y roles múltiples por US-06/US-09.
+- Se incorpora de nuevo perfil y contraseña por US-12. La edición genérica de clientes sigue fuera del flujo necesario.
 - Exportación CSV y su código de descarga.
 - Interceptor genérico de auditoría HTTP.
 - Ilustraciones y estilos decorativos del frontend.
@@ -31,3 +31,7 @@ El nuevo esquema es para crear una base nueva. Esta versión utiliza sirav_3fn y
 ## Entrega
 
 El ZIP nuevo excluye secretos, datos locales, dependencias descargadas, artefactos anteriores y documentos obsoletos. La copia anterior del proyecto permanece disponible en output/SIRAV-proyecto-completo.zip.
+
+## Supuestos de noviembre
+
+06-supuestos.sql amplía sin alterar 01-schema.sql ni borrar datos: flota 25/5, redondeo COP, protección de tarifas usadas, permisos de roles y carga histórica controlada. Las interfaces de cuentas, cobros e historial completan siete módulos. Ver SUPUESTOS-CUMPLIMIENTO.md y MANUAL.md.

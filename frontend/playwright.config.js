@@ -3,6 +3,7 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   workers: 1,
+  expect: { timeout: Number(process.env.SIRAV_EXPECT_TIMEOUT_MS || 5000) },
   use: {
     baseURL: process.env.SIRAV_WEB_URL || "http://localhost:5173",
     browserName: "chromium",

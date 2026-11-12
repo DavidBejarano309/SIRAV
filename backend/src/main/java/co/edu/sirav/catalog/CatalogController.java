@@ -35,6 +35,11 @@ public class CatalogController {
       @NotNull LocalDate vigenteDesde,
       LocalDate vigenteHasta) {}
 
+  public record RateEnd(@NotNull LocalDate vigenteHasta) {}
+
+  public record MaintenanceState(
+      @NotBlank @Pattern(regexp = "COMPLETADO|CANCELADO") String estado) {}
+
   public record Client(
       @NotBlank @Size(max = 100) String nombres,
       @NotBlank @Size(max = 100) String apellidos,
@@ -202,8 +207,8 @@ ORDER BY v.id_vehiculo
   @PutMapping("/rates/{id}/end")
   @PreAuthorize("hasRole('ADMIN')")
   public Map<String, Object> endRate(
-      @PathVariable long id, @RequestBody Map<String, String> input) {
-    LocalDate date = LocalDate.parse(input.get("vigenteHasta"));
+      @PathVariable long id, @Valid @RequestBody RateEnd input) {
+    LocalDate date = input.vigenteHasta();
     if (Boolean.TRUE.equals(
         db.queryForObject(
             "SELECT EXISTS(SELECT 1 FROM reserva WHERE id_tarifa=? AND fecha_fin>?)",
@@ -265,9 +270,8 @@ ORDER BY v.id_vehiculo
   @PatchMapping("/maintenance/{id}")
   @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
   public Map<String, Object> maintenanceState(
-      @PathVariable long id, @RequestBody Map<String, String> input) {
-    String state = input.get("estado");
-    if (!Set.of("COMPLETADO", "CANCELADO").contains(state)) throw new IllegalArgumentException();
+      @PathVariable long id, @Valid @RequestBody MaintenanceState input) {
+    String state = input.estado();
     var rows =
         db.queryForList(
             "UPDATE mantenimiento SET estado=? WHERE id_mantenimiento=? AND estado='PROGRAMADO'"
@@ -276,6 +280,25 @@ ORDER BY v.id_vehiculo
             id);
     if (rows.isEmpty())
       throw new ApiException(HttpStatus.CONFLICT, "El mantenimiento ya fue finalizado o no existe");
+    return rows.getFirst();
+  }
+
+  @PutMapping("/maintenance/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
+  public Map<String, Object> editMaintenance(
+      @PathVariable long id, @Valid @RequestBody Maintenance input) {
+    var rows =
+        db.queryForList(
+            "UPDATE mantenimiento SET fecha_inicio=?,fecha_fin=?,descripcion=? WHERE"
+                + " id_mantenimiento=? AND id_vehiculo=? AND estado='PROGRAMADO' RETURNING *",
+            input.fechaInicio(),
+            input.fechaFin(),
+            input.descripcion(),
+            id,
+            input.idVehiculo());
+    if (rows.isEmpty())
+      throw new ApiException(
+          HttpStatus.CONFLICT, "Solo puede editar un mantenimiento programado del mismo vehículo");
     return rows.getFirst();
   }
 }

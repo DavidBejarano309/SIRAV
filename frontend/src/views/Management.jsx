@@ -148,6 +148,7 @@ export default function Management({ section, admin, revision, changed }) {
 }
 function Editor({ section, record: r, categories, onClose, onDone }) {
   const vehicles = useResource("/vehicles");
+  const [finish, setFinish] = useState(false);
   const existing = Boolean(r.id_mantenimiento || r.id_tarifa);
   const title = r.category
     ? "Nueva categoría"
@@ -155,7 +156,7 @@ function Editor({ section, record: r, categories, onClose, onDone }) {
       ? "Nuevo cliente"
       : section === "maintenance"
         ? existing
-          ? "Finalizar mantenimiento"
+          ? "Editar mantenimiento"
           : "Programar mantenimiento"
         : existing
           ? "Cerrar vigencia"
@@ -168,8 +169,11 @@ function Editor({ section, record: r, categories, onClose, onDone }) {
       return api(
         existing ? `/maintenance/${r.id_mantenimiento}` : "/maintenance",
         {
-          method: existing ? "PATCH" : "POST",
-          body: existing ? d : { ...d, idVehiculo: Number(d.idVehiculo) },
+          method: existing ? (finish ? "PATCH" : "PUT") : "POST",
+          body:
+            existing && finish
+              ? d
+              : { ...d, idVehiculo: Number(r.id_vehiculo || d.idVehiculo) },
         },
       );
     return api(existing ? `/rates/${r.id_tarifa}/end` : "/rates", {
@@ -214,51 +218,55 @@ function Editor({ section, record: r, categories, onClose, onDone }) {
       </div>
     );
   else if (section === "maintenance")
-    fields = existing ? (
-      <Field
-        label="Nuevo estado"
-        name="estado"
-        options={[
-          { value: "COMPLETADO", label: "Completado" },
-          { value: "CANCELADO", label: "Cancelado" },
-        ]}
-      />
-    ) : (
-      <>
+    fields =
+      existing && finish ? (
         <Field
-          label="Vehículo"
-          name="idVehiculo"
-          required
-          options={(vehicles.data || []).map((v) => ({
-            value: v.id_vehiculo,
-            label: v.placa + " · " + v.modelo,
-          }))}
+          label="Nuevo estado"
+          name="estado"
+          options={[
+            { value: "COMPLETADO", label: "Completado" },
+            { value: "CANCELADO", label: "Cancelado" },
+          ]}
         />
-        <div className="form-grid">
+      ) : (
+        <>
+          {!existing && (
+            <Field
+              label="Vehículo"
+              name="idVehiculo"
+              required
+              options={(vehicles.data || []).map((v) => ({
+                value: v.id_vehiculo,
+                label: v.placa + " · " + v.modelo,
+              }))}
+            />
+          )}
+          <div className="form-grid">
+            <Field
+              label="Inicio"
+              name="fechaInicio"
+              type="date"
+              required
+              defaultValue={r.fecha_inicio || today()}
+            />
+            <Field
+              label="Fin"
+              name="fechaFin"
+              type="date"
+              required
+              defaultValue={r.fecha_fin || addDays(today(), 1)}
+            />
+          </div>
           <Field
-            label="Inicio"
-            name="fechaInicio"
-            type="date"
+            label="Descripción"
+            name="descripcion"
+            type="textarea"
             required
-            defaultValue={today()}
+            maxLength={4000}
+            defaultValue={r.descripcion || ""}
           />
-          <Field
-            label="Fin"
-            name="fechaFin"
-            type="date"
-            required
-            defaultValue={addDays(today(), 1)}
-          />
-        </div>
-        <Field
-          label="Descripción"
-          name="descripcion"
-          type="textarea"
-          required
-          maxLength={4000}
-        />
-      </>
-    );
+        </>
+      );
   else
     fields = existing ? (
       <>
@@ -309,6 +317,22 @@ function Editor({ section, record: r, categories, onClose, onDone }) {
     );
   return (
     <Modal title={title} onClose={onClose}>
+      {section === "maintenance" && existing && (
+        <>
+          <p>
+            Solo se modifica un mantenimiento programado. Los conflictos se
+            validan al guardar.
+          </p>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={finish}
+              onChange={(e) => setFinish(e.target.checked)}
+            />
+            Finalizar o cancelar
+          </label>
+        </>
+      )}
       <Form onSubmit={submit} onDone={onDone} onCancel={onClose}>
         {fields}
       </Form>
