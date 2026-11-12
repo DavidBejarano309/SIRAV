@@ -10,7 +10,10 @@ import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.http.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+// La condición de AuditSupport no se hereda: sin esto, "mvn verify" (por ejemplo al construir la imagen Docker) las ejecuta sin bases de auditoría.
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class ConcurrencyAuditTest extends AuditSupport {
   @Test
   void independentVehiclesAcceptAllEightConcurrentReservations() throws Exception {
