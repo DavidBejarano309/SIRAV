@@ -54,7 +54,8 @@ BEGIN
  IF NEW.estado IN ('SOLICITADA','CONFIRMADA','ACTIVA') THEN
   SELECT id_categoria INTO vn_categoria FROM vehiculo WHERE id_vehiculo=NEW.id_vehiculo AND estado_operativo<>'INACTIVO';
   IF NOT FOUND THEN RAISE EXCEPTION 'Vehículo inactivo o inexistente' USING ERRCODE='SR005', HINT='e_vehiculo_no_disponible'; END IF;
-  IF NOT EXISTS(SELECT 1 FROM tarifa WHERE id_tarifa=NEW.id_tarifa AND id_categoria=vn_categoria AND vigente_desde<=NEW.fecha_inicio AND (vigente_hasta IS NULL OR vigente_hasta>=NEW.fecha_fin)) THEN RAISE EXCEPTION 'No existe una tarifa que cubra el período' USING ERRCODE='SR006', HINT='e_tarifa_no_vigente'; END IF;
+  PERFORM 1 FROM tarifa WHERE id_tarifa=NEW.id_tarifa AND id_categoria=vn_categoria AND vigente_desde<=NEW.fecha_inicio AND (vigente_hasta IS NULL OR vigente_hasta>=NEW.fecha_fin) FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'No existe una tarifa que cubra el período' USING ERRCODE='SR006', HINT='e_tarifa_no_vigente'; END IF;
   IF EXISTS(SELECT 1 FROM mantenimiento WHERE id_vehiculo=NEW.id_vehiculo AND estado='PROGRAMADO' AND daterange(fecha_inicio,fecha_fin,'[)') && daterange(NEW.fecha_inicio,NEW.fecha_fin,'[)')) THEN RAISE EXCEPTION 'El vehículo tiene mantenimiento en ese período' USING ERRCODE='SR002', HINT='e_mantenimiento_solapado'; END IF;
  END IF;
  RETURN NEW;

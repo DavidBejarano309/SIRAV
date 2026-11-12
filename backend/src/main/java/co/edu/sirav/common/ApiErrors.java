@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
 public class ApiErrors {
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  ProblemDetail uploadTooLarge() {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "La imagen supera el tamaño permitido de 5 MB");
+  }
+
   private static final Logger log = LoggerFactory.getLogger(ApiErrors.class);
 
   @ExceptionHandler(ApiException.class)

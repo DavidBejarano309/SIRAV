@@ -50,6 +50,9 @@ services:
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8088,http://127.0.0.1:8088}
       TZ: America/Bogota
+      EVIDENCE_DIRECTORY: /app/evidencias
+    volumes:
+      - evidence_data:/app/evidencias
     depends_on:
       postgres: { condition: service_healthy }
       mongo: { condition: service_healthy }
@@ -62,3 +65,4 @@ services:
 volumes:
   postgres_3fn_data:
   mongo_3fn_data:
+  evidence_data:

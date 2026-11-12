@@ -17,6 +17,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 server:
   port: ${PORT:8080}
   error:
@@ -35,6 +39,7 @@ sirav:
   cors-origin: ${CORS_ORIGIN:http://localhost:5173,http://127.0.0.1:5173}
   seed-demo: ${SEED_DEMO:false}
   demo-password: ${DEMO_PASSWORD:}
+  evidence-directory: ${EVIDENCE_DIRECTORY:.runtime/evidencias}
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

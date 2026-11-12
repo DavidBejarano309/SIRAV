@@ -66,6 +66,7 @@ export default function Inspections({ admin, revision, changed }) {
 }
 function Edit({ record: r, admin, onClose, onDone }) {
   const [annul, setAnnul] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [inspection, setInspection] = useState({
     danos: r.danos,
     evidencias: r.evidencias,
@@ -97,6 +98,7 @@ function Edit({ record: r, admin, onClose, onDone }) {
       onClose={onClose}
     >
       <Form
+        disabled={uploading}
         onSubmit={submit}
         onDone={onDone}
         onCancel={onClose}
@@ -116,7 +118,25 @@ function Edit({ record: r, admin, onClose, onDone }) {
             <p>
               {r.kilometraje} km · Combustible: {r.combustible}%
             </p>
-            <InspectionFields value={inspection} onChange={setInspection} />
+            <InspectionFields
+              value={inspection}
+              onChange={setInspection}
+              uploadPath={`/rentals/${r.alquilerId}/evidence`}
+              onBusyChange={setUploading}
+            />
+            <details>
+              <summary>
+                Versiones anteriores ({r.historial?.length || 0})
+              </summary>
+              <Table
+                rows={r.historial}
+                columns={[
+                  { key: "version", label: "Versión" },
+                  { key: "actor", label: "Usuario" },
+                  { key: "observaciones", label: "Observaciones" },
+                ]}
+              />
+            </details>
             {admin && (
               <button
                 className="link danger-text"

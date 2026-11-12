@@ -1,0 +1,22 @@
+[Unit]
+Description=SIRAV API
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=sirav
+Group=sirav
+EnvironmentFile=/opt/sirav/application.env
+WorkingDirectory=/opt/sirav/current/backend
+ExecStart=/opt/sirav/bin/start-api.sh
+Restart=on-failure
+RestartSec=10
+MemoryMax=900M
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

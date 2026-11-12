@@ -28,11 +28,14 @@ public class InspectionController {
   private final MongoTemplate mongo;
   private final Access access;
   private final JdbcTemplate db;
+  private final EvidenceService evidence;
 
-  public InspectionController(MongoTemplate mongo, Access access, JdbcTemplate db) {
+  public InspectionController(
+      MongoTemplate mongo, Access access, JdbcTemplate db, EvidenceService evidence) {
     this.mongo = mongo;
     this.access = access;
     this.db = db;
+    this.evidence = evidence;
   }
 
   @GetMapping("/rentals/{id}/inspections")
@@ -42,6 +45,38 @@ public class InspectionController {
         Query.query(Criteria.where("alquilerId").is(id)).with(Sort.by("fecha")),
         Document.class,
         COLLECTION);
+  }
+
+  @GetMapping("/rentals/{id}/inspection-status")
+  public Map<String, Object> status(JwtAuthenticationToken auth, @PathVariable long id) {
+    access.rental(auth, id);
+    var rental = db.queryForMap("SELECT id_reserva,estado FROM alquiler WHERE id_alquiler=?", id);
+    var expected = new LinkedHashSet<String>(List.of("ENTREGA"));
+    if ("CERRADA".equals(rental.get("estado"))) expected.add("DEVOLUCION");
+    var documents =
+        mongo.find(Query.query(Criteria.where("alquilerId").is(id)), Document.class, COLLECTION);
+    var pending =
+        new LinkedHashSet<>(
+            db.queryForList(
+                "SELECT documento->>'tipo' FROM evento_outbox WHERE"
+                    + " coleccion='inspecciones_vehiculo' AND publicado_en IS NULL AND"
+                    + " documento->>'alquilerId'=?",
+                String.class,
+                Long.toString(id)));
+    var present = new LinkedHashSet<String>();
+    var annulled = new LinkedHashSet<String>();
+    for (var document : documents) {
+      present.add(document.getString("tipo"));
+      if (Boolean.TRUE.equals(document.getBoolean("anulada")))
+        annulled.add(document.getString("tipo"));
+    }
+    var missing = new LinkedHashSet<>(expected);
+    missing.removeAll(present);
+    missing.removeAll(pending);
+    String state =
+        !missing.isEmpty() ? "INCONSISTENTE" : !pending.isEmpty() ? "PENDIENTE" : "DISPONIBLE";
+    return Map.of(
+        "estado", state, "faltantes", missing, "pendientes", pending, "anuladas", annulled);
   }
 
   @GetMapping("/inspections")
@@ -80,6 +115,13 @@ public class InspectionController {
     if (original == null) throw ApiException.missing();
     access.rental(auth, ((Number) original.get("alquilerId")).longValue());
     var data = input.inspeccion();
+    long reservation =
+        Objects.requireNonNull(
+            db.queryForObject(
+                "SELECT id_reserva FROM alquiler WHERE id_alquiler=?",
+                Long.class,
+                ((Number) original.get("alquilerId")).longValue()));
+    evidence.validate(reservation, data.evidencias());
     var update =
         new Update()
             .set(
@@ -99,6 +141,7 @@ public class InspectionController {
             .push(
                 "historial",
                 new Document("danos", original.get("danos"))
+                    .append("version", original.get("version"))
                     .append("evidencias", original.get("evidencias"))
                     .append("observaciones", original.get("observaciones"))
                     .append("actor", access.actor(auth))

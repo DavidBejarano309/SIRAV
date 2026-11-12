@@ -1,8 +1,8 @@
 # Arquitectura simplificada
 
-![Arquitectura de despliegue](diagramas/SIRAV_arquitectura.png)
+> Diagramas de la entrega final: [`diagramas/`](diagramas/). Despliegue real en tres VM: [`fase-2/guia-instalacion.md`](fase-2/guia-instalacion.md).
 
-React consume una API Spring Boot. PostgreSQL conserva las 13 entidades y ejecuta los procedimientos, funciones y triggers. MongoDB conserva inspecciones con listas de daños/evidencias y la bitácora de cambios de estado.
+React consume una API Spring Boot. PostgreSQL conserva las 13 entidades y ejecuta los procedimientos, funciones y triggers. MongoDB conserva inspecciones con listas de daños/evidencias y la bitácora de estados, accesos y administración.
 
 ```mermaid
 flowchart LR
@@ -22,4 +22,4 @@ La entrega y devolución incluyen inspección obligatoria. Su documento se guard
 
 BCrypt protege contraseñas. JWT expira a los 30 minutos; logout incrementa token_version y revoca la sesión. El servidor limita cada cliente a sus propias operaciones. ADMIN gestiona catálogo y tarifas; ADMIN/OPERADOR gestionan entregas, mantenimiento e inspecciones. El usuario SQL de la API no escribe directamente reservas, alquileres ni pagos.
 
-El backend conserva módulos de seguridad, catálogo, alquiler, inspecciones y reportes. El frontend comparte formulario, tabla, diálogo y campos de inspección. No hay dashboard ni administración avanzada de usuarios.
+El backend conserva módulos de seguridad, catálogo, alquiler, inspecciones y reportes. El frontend comparte formulario, tabla, diálogo y campos de inspección. La administración básica de usuarios y el perfil se incluyen para cubrir US-06 a US-14. Las evidencias son archivos protegidos por autorización de la API; MongoDB conserva referencias. Compose mantiene un volumen para esos archivos. Una tarifa utilizada no puede cambiar categoría, valor ni inicio; los reportes financieros conservan la categoría de la tarifa. La vista de cobros distingue base, cargos y pagos simulados. El estado de inspecciones distingue evento pendiente y ausencia sin documento, además de anulaciones.

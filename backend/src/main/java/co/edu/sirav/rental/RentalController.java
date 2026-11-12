@@ -30,6 +30,15 @@ public class RentalController {
         access.actor(auth));
   }
 
+  @GetMapping("/rentals")
+  public List<Map<String, Object>> rentals(JwtAuthenticationToken auth) {
+    return db.queryForList(
+        "SELECT * FROM v_reservas WHERE id_alquiler IS NOT NULL AND (? OR id_usuario=?) ORDER BY"
+            + " id_alquiler DESC",
+        access.staff(auth),
+        access.actor(auth));
+  }
+
   @PostMapping("/reservations")
   @ResponseStatus(HttpStatus.CREATED)
   public Map<String, Object> create(

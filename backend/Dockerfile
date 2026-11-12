@@ -5,7 +5,7 @@ RUN mvn -B dependency:go-offline
 COPY src src
 RUN mvn -B verify
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S sirav && adduser -S sirav -G sirav
+RUN addgroup -S sirav && adduser -S sirav -G sirav && mkdir -p /app/evidencias && chown -R sirav:sirav /app
 USER sirav
 WORKDIR /app
 COPY --from=build /app/target/sirav-api-1.0.0.jar app.jar

@@ -42,4 +42,17 @@ public class AuthController {
   public void logout(JwtAuthenticationToken principal) {
     auth.logout(access.actor(principal));
   }
+
+  @PutMapping("/me")
+  public Map<String, Object> profile(
+      JwtAuthenticationToken principal, @Valid @RequestBody AuthService.Profile input) {
+    return auth.profile(access.actor(principal), input);
+  }
+
+  @PostMapping("/password")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void password(
+      JwtAuthenticationToken principal, @Valid @RequestBody AuthService.PasswordChange input) {
+    auth.password(access.actor(principal), input);
+  }
 }

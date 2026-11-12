@@ -30,7 +30,7 @@ END $$;
 CREATE OR REPLACE PROCEDURE sp_cancelar_reserva(param_actor BIGINT,param_reserva BIGINT,param_motivo TEXT)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 BEGIN
- IF length(trim(param_motivo))<5 THEN RAISE EXCEPTION 'Indique un motivo de al menos cinco caracteres' USING ERRCODE='SR007', HINT='e_parametro_invalido'; END IF;
+ IF param_motivo IS NULL OR length(trim(param_motivo))<5 THEN RAISE EXCEPTION 'Indique un motivo de al menos cinco caracteres' USING ERRCODE='SR007', HINT='e_parametro_invalido'; END IF;
  PERFORM set_config('sirav.actor',param_actor::text,true);
  PERFORM set_config('sirav.motivo',param_motivo,true);
  PERFORM 1 FROM vehiculo WHERE id_vehiculo=(SELECT id_vehiculo FROM reserva WHERE id_reserva=param_reserva) FOR UPDATE;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { today, addDays } from "../api";
+import { today, addDays, money } from "../api";
 import {
   ErrorBox,
   Field,
@@ -10,10 +10,10 @@ import {
 } from "../components";
 const reports = {
   occupancy: "Ocupación mensual",
-  revenue: "Ingresos por categoría",
+  revenue: "Ingresos simulados por categoría",
   ranking: "Vehículos más alquilados",
   clients: "Actividad de clientes",
-  late: "Devoluciones tardías",
+  late: "Devoluciones tardías y cargos simulados",
   availability: "Disponibilidad",
 };
 export default function Reports({ revision }) {
@@ -23,7 +23,13 @@ export default function Reports({ revision }) {
   const sql = useResource(`/reports/${type}?from=${from}&to=${to}`, revision);
   const mongo = useResource("/inspections/analytics", revision);
   const columns = (sql.data?.length ? Object.keys(sql.data[0]) : []).map(
-    (key) => ({ key, label: key.replaceAll("_", " ") }),
+    (key) => ({
+      key,
+      label: key.replaceAll("_", " "),
+      ...(["cargos", "ingresos_simulados"].includes(key)
+        ? { render: (r) => money(r[key]) }
+        : {}),
+    }),
   );
   return (
     <>

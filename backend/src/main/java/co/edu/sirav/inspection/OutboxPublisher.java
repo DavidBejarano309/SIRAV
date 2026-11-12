@@ -22,7 +22,9 @@ public class OutboxPublisher {
     this.mongo = mongo;
   }
 
-  @Scheduled(fixedDelayString = "${sirav.outbox-delay:2000}")
+  @Scheduled(
+      fixedDelayString = "${sirav.outbox-delay:2000}",
+      initialDelayString = "${sirav.outbox-initial-delay:0}")
   @Transactional
   public void publish() {
     var rows =

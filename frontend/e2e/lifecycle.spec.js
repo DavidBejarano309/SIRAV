@@ -29,7 +29,7 @@ test("reserva, confirmación, entrega y devolución desde los formularios", asyn
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page
     .getByRole("navigation")
-    .getByRole("button", { name: "Reservas y alquileres", exact: true })
+    .getByRole("button", { name: "Reservas", exact: true })
     .click();
   const row = () =>
     page.getByRole("row").filter({ hasText: "Renault Duster" }).first();
@@ -49,6 +49,20 @@ test("reserva, confirmación, entrega y devolución desde los formularios", asyn
     .getByRole("button", { name: "Registrar entrega", exact: true })
     .click();
   await page.getByLabel("Kilometraje actual").fill("900000");
+  await page.getByLabel("Adjuntar evidencia", { exact: false }).setInputFiles({
+    name: "foto.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
+  await expect(
+    page.getByRole("button", { name: "Descargar evidencia 1" }),
+  ).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Descargar evidencia 1" }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.png$/);
   await page
     .getByLabel("Observaciones de la inspección")
     .fill("Entrega verificada desde el navegador");
