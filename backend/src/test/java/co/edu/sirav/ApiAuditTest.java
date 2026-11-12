@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.http.*;
 
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class ApiAuditTest extends AuditSupport {
   Map<String,Object> userInput(Object roles) {
     return Map.of("nombre","Auditoria","apellido","API","email",UUID.randomUUID()+"@example.com","password","AuditSegura2026!","roles",roles);

@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.IntFunction;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -26,7 +25,6 @@ import org.springframework.transaction.support.TransactionTemplate;
     "sirav.outbox-initial-delay=86400000",
     "sirav.evidence-directory=${SIRAV_TEST_EVIDENCE_DIR:../.runtime/test-evidencias}"
 })
-@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 abstract class AuditSupport {
   @Autowired JdbcTemplate db;
   @Autowired MongoTemplate mongo;

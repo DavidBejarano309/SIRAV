@@ -8,9 +8,11 @@ import java.util.*;
 import java.util.concurrent.*;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.http.*;
 
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class ConcurrencyAuditTest extends AuditSupport {
   @Test
   void independentVehiclesAcceptAllEightConcurrentReservations() throws Exception {

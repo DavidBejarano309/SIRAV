@@ -9,10 +9,12 @@ import java.util.*;
 import java.util.stream.Stream;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.http.*;
 
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class MongoAuditTest extends AuditSupport {
   @TestFactory
   Stream<DynamicTest> documentValidatorRejectsMissingFieldsAndWrongTypes() {

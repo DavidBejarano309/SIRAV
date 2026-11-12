@@ -7,8 +7,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.http.*;
 
+@EnabledIfEnvironmentVariable(named = "SIRAV_AUDIT", matches = "true")
 class SqlAuditTest extends AuditSupport {
   @Test
   void allProjectRoutinesTriggersViewsAndRestrictedPrivilegesExist() {
