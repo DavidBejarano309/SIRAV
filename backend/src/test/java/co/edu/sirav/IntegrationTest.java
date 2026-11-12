@@ -3,6 +3,7 @@ package co.edu.sirav;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
@@ -18,6 +19,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @EnabledIfEnvironmentVariable(named = "SIRAV_INTEGRATION", matches = "true")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class IntegrationTest {
+  // Las reglas de fechas de la base usan la hora de Bogotá; el servidor de CI está en UTC.
+  private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
+
   @Autowired TestRestTemplate http;
   @Autowired JdbcTemplate db;
 
@@ -78,9 +82,9 @@ class IntegrationTest {
             "idVehiculo",
             vehicle,
             "fechaInicio",
-            LocalDate.now().toString(),
+            LocalDate.now(BOGOTA).toString(),
             "fechaFin",
-            LocalDate.now().plusDays(1).toString());
+            LocalDate.now(BOGOTA).plusDays(1).toString());
     var created =
         http.exchange(
             "/api/reservations", HttpMethod.POST, new HttpEntity<>(input, headers), Map.class);
@@ -197,8 +201,8 @@ class IntegrationTest {
                         actor,
                         client,
                         vehicle,
-                        LocalDate.now().plusDays(90),
-                        LocalDate.now().plusDays(93),
+                        LocalDate.now(BOGOTA).plusDays(90),
+                        LocalDate.now(BOGOTA).plusDays(93),
                         key);
                     return true;
                   } catch (org.springframework.dao.DataAccessException e) {
@@ -227,9 +231,9 @@ class IntegrationTest {
               "/api/reports/"
                   + type
                   + "?from="
-                  + LocalDate.now().withDayOfMonth(1)
+                  + LocalDate.now(BOGOTA).withDayOfMonth(1)
                   + "&to="
-                  + LocalDate.now().plusDays(5),
+                  + LocalDate.now(BOGOTA).plusDays(5),
               HttpMethod.GET,
               entity(token, null),
               String.class);
