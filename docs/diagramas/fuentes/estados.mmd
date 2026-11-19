@@ -1,0 +1,15 @@
+stateDiagram-v2
+  direction LR
+  [*] --> SOLICITADA : sp_crear_reserva
+  SOLICITADA --> CONFIRMADA : sp_confirmar_reserva
+  SOLICITADA --> CANCELADA : sp_cancelar_reserva
+  CONFIRMADA --> CANCELADA : sp_cancelar_reserva
+  CONFIRMADA --> ACTIVA : sp_iniciar_alquiler<br/>(inspección de ENTREGA)
+  ACTIVA --> CERRADA : sp_cerrar_alquiler<br/>(inspección de DEVOLUCIÓN, pago SIMULADO)
+  CERRADA --> [*]
+  CANCELADA --> [*]
+  note right of SOLICITADA
+    Bloquean el vehículo: SOLICITADA, CONFIRMADA y ACTIVA
+    (exclusión GiST sobre [fecha_inicio, fecha_fin)).
+    Otra transición → SR003 e_transicion_invalida
+  end note

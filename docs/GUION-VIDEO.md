@@ -1,5 +1,7 @@
 # Guion de demostración
 
+> **Versión vigente para el equipo de dos integrantes:** [`cierre/guion-video.md`](cierre/guion-video.md), con los diálogos de David y Jose David. Este archivo conserva el borrador anterior, pensado para tres integrantes.
+
 Duración objetivo: 13 minutos 30 segundos; límite de la asignatura: 15 minutos. Participan los tres integrantes exigidos por el documento definitivo. Asignar nombres reales antes de grabar; la propuesta anterior tenía dos integrantes y debe ajustarse al equipo aprobado por el docente.
 
 | Tiempo | Responsable | Demostración |

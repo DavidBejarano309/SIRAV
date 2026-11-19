@@ -1,5 +1,7 @@
 # Pruebas de la versión 3FN con supuestos
 
+> Plan de pruebas de la entrega final, con trazabilidad y resultados consolidados: [`fase-2/pruebas.md`](fase-2/pruebas.md).
+
 La auditoría actual en VirtualBox aprobó **72 pruebas Java, 5 frontend y 4 flujos de navegador**, además de **64 solicitudes HTTP en grupos de ocho**. Se corrigieron siete casos defectuosos de SQL y validación de entradas. Consulta el [informe funcional y de concurrencia](AUDITORIA-FUNCIONAL-VM.md) para ver escenarios, evidencias y límites de carga.
 
 La auditoría usa PostgreSQL y MongoDB reales en bases nuevas `sirav_audit_FECHA`. La ejecución local anterior utiliza `sirav_3fn_test`. La aplicación normal utiliza `sirav_3fn`.

@@ -1,6 +1,6 @@
 # Modelo de datos revisado
 
-La definición ejecutable es database/postgres/01-schema.sql, copia del archivo revisado aportado por el usuario. El diccionario se genera desde ese esquema. Los diagramas PNG y el informe de octubre representan la versión anterior y no se incluyen en el ZIP simplificado.
+La definición ejecutable es `database/postgres/01-schema.sql`. Los diagramas de la entrega final (Chen, EER, Crow's Foot lógico y relacional) están en `docs/diagramas/` y se generaron del catálogo de esta base; el diccionario con la verificación de 3FN está en `docs/fase-1/diccionario-datos.md`.
 
 ```mermaid
 erDiagram
